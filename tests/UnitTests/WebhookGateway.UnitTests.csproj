@@ -10,6 +10,7 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <ProjectReference Include="..\..\src\Contracts\WebhookGateway.Contracts.csproj" />
+    <ProjectReference Include="..\..\src\FanOut\WebhookGateway.FanOut.csproj" />
     <ProjectReference Include="..\..\src\Ingest\WebhookGateway.Ingest.csproj" />
   </ItemGroup>
   <ItemGroup>
