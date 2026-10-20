@@ -24,6 +24,19 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 
 ## Entries
 
+### 2026-10-20 Orchestrator spec: owner decisions recorded
+- **Status:** in progress
+- **Why:** User answered the open architecture questions from `orchestrator-spec.md` section 15; the draft cannot be finalized until they are acted on.
+- **End goal:** Spec approved and the autonomous task-chain agent built (spec phases 0-7).
+- **Decisions (see `decisions.md` D14-D17):** monorepo + orchestrator repo; Pro plan only; GitHub Pro later; 12h veto window.
+- **Plan / steps:**
+  - [x] Record D14-D17 in `decisions.md`
+  - [ ] Update `orchestrator-spec.md` section 15 to mark these as decided
+  - [ ] Decide how to merge Ingest/Dispatcher/Global into one monorepo (history-preserving); ask the user before touching remotes (architecture + destructive)
+  - [ ] Spec phase 0 prerequisites: verify the "unverified items" list in section 15 (GitHub free-plan limits, Pro terms for scripted use, sandbox + Docker, Keychain from launchd)
+  - [ ] User approves the spec; then update/replace `workflow.md`
+- **Resume from:** update spec section 15, then plan the monorepo merge.
+
 ### 2026-10-20 Consolidate docs into Global
 - **Status:** done (2026-10-20)
 - **Why:** A top-level `WebhookGateway/docs/` folder (outside every repo) was created holding `architecture-spec.md`. The user wants all docs in `WebhookGateway.Global` since it is the source of truth, and the stray copy is unversioned and can drift from `Global/docs/architecture.md`.
