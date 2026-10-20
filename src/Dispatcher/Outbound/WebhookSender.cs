@@ -13,7 +13,7 @@ namespace WebhookGateway.Dispatcher.Outbound;
 /// One signed POST to a subscriber and the decision of what the result means. It never throws for subscriber
 /// problems; only a shutdown (caller's cancellation) surfaces as <see cref="OperationCanceledException"/>.
 /// </summary>
-public sealed class WebhookSender(HttpClient http, TimeProvider clock, IOptions<SenderOptions> options)
+public sealed class WebhookSender(HttpClient http, TimeProvider clock, IOptions<SenderOptions> options) : IWebhookSender
 {
     /// <summary>Longest <c>Retry-After</c> we honor.</summary>
     public static readonly TimeSpan MaxRetryAfter = TimeSpan.FromHours(1);
