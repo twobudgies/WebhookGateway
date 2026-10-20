@@ -17,8 +17,8 @@ public readonly record struct EventId : IPrefixedId<EventId>
 
     public static EventId Parse(string value) => new(PrefixedIdFormat.Validate(Prefix, value));
 
-    /// <summary>The ULID part without the prefix.</summary>
-    public string Ulid => Value[Prefix.Length..];
+    /// <summary>The UUID part as a <see cref="System.Guid"/>.</summary>
+    public Guid Uuid => Guid.ParseExact(Value.AsSpan(Prefix.Length), "D");
 
     public override string ToString() => Value;
 }
