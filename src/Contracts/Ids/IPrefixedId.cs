@@ -1,9 +1,10 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace WebhookGateway.Contracts.Ids;
 
-/// <summary>An identifier that is serialized as a plain string such as <c>evt_01J...</c>.</summary>
+/// <summary>An identifier serialized as a plain string: a type prefix plus a UUIDv7, such as <c>evt_0192f3a4-7c1b-7d2e-9a10-3b5c8e7f1a22</c>.</summary>
 public interface IPrefixedId<TSelf>
     where TSelf : struct, IPrefixedId<TSelf>
 {
@@ -38,16 +39,18 @@ public sealed class PrefixedIdJsonConverter<T> : JsonConverter<T>
 
 internal static class PrefixedIdFormat
 {
-    public static string Create(string prefix) => prefix + Ulid.New();
+    public static string Create(string prefix) => prefix + Uuid7.New().ToString("D", CultureInfo.InvariantCulture);
 
+    /// <summary>Checks prefix and UUID and returns the canonical (lowercase, hyphenated) form.</summary>
     public static string Validate(string prefix, string value)
     {
         ArgumentNullException.ThrowIfNull(value);
-        if (!value.StartsWith(prefix, StringComparison.Ordinal) || !Ulid.IsValid(value.AsSpan(prefix.Length)))
+        if (!value.StartsWith(prefix, StringComparison.Ordinal)
+            || !Guid.TryParseExact(value.AsSpan(prefix.Length), "D", out var uuid))
         {
             throw new FormatException($"'{value}' is not a valid identifier with prefix '{prefix}'.");
         }
 
-        return value;
+        return prefix + uuid.ToString("D", CultureInfo.InvariantCulture);
     }
 }
