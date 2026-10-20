@@ -40,6 +40,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
   - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): ULID ids, event/delivery/result messages, JSON options; 26 tests pass
+  - [x] P1-3a Ingest accept endpoint (PR open, stacked on the Contracts PR, `risky` auth: needs owner merge): `POST /v1/events` with API-key auth (hash lookup), per-tenant token-bucket limit (local), validation, publish via `IEventPublisher` (in-memory for now); 31 unit + 18 integration tests pass. Not yet: Valkey limiter, idempotency, monthly quota, SQS publisher (needs Docker to verify), Postgres key store.
   - [ ] P0-3 verify/CI
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
 - **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
