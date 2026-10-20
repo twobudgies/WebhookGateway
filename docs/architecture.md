@@ -18,7 +18,7 @@ Webhook-as-a-service that competes with established players: tenants register en
 | Event queue | **SQS** | SQS, or Kinesis if it becomes cheaper (section 10) |
 | Everything else | Same components and same code | Same components, bigger and sharded |
 
-The point of staging: **no rewrite between stages.** Each cost-saving shortcut sits behind an interface (`IEventQueue`, `IRateLimiter`, `IStateStore`) or is a deployment choice, and section 10 lists the exact swap and the trigger that justifies it.
+The point of staging: **no rewrite between stages.** Each cost-saving shortcut sits behind an interface (`IEventPublisher`, `IRateLimiter`, `IStateStore`) or is a deployment choice, and section 10 lists the exact swap and the trigger that justifies it.
 
 Launch scope: one AWS region (`ap-south-1`); public API reachable worldwide. Out of scope for v1: event transformation, per-endpoint ordering, non-HTTP destinations, active-active multi-region.
 
@@ -155,7 +155,7 @@ stateDiagram-v2
   InFlight --> RetryScheduled: 429, 5xx, timeout (row written)
   RetryScheduled --> InFlight: re-enqueued when due
   InFlight --> Failed: other 4xx (row written)
-  RetryScheduled --> Exhausted: 9 attempts used
+  RetryScheduled --> Exhausted: plan's attempts used
   RetryScheduled --> Parked: circuit open for endpoint
   Parked --> InFlight: circuit closes
   InFlight --> Expired: older than max backlog age
@@ -165,7 +165,7 @@ stateDiagram-v2
   Expired --> [*]
 ```
 
-Retry policy: the first attempt plus 8 retries (9 attempts) over about 24 h; waits ~30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h with full jitter; `Retry-After` honored (capped). Delays up to 15 min use SQS `DelaySeconds`; longer ones use a DynamoDB due-time index read by the **retry scheduler** (no per-retry EventBridge schedule, which would hit quotas in an outage). After exhaustion the item stays visible in the portal for replay.
+Retry policy (D31): the retry window depends on the plan: **Basic about 24 h** (first attempt plus 8 retries), **Advanced about 3 days**, **Premium about 7 days**. All plans start with the waits ~30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h (full jitter); Advanced then adds two daily waits and Premium six (12 to 24 h each); `Retry-After` honored (capped). Delays up to 15 min use SQS `DelaySeconds`; longer ones use a DynamoDB due-time index read by the **retry scheduler** (no per-retry EventBridge schedule, which would hit quotas in an outage). After exhaustion the item stays visible in the portal for replay.
 
 ### 6.1 Accept fast, deliver steady (pacing)
 
@@ -306,7 +306,7 @@ SQS standard has no throughput limit, so the same design reaches 30,000 events/s
 | RDS to Aurora PostgreSQL | Config load or availability | Same engine |
 | Add NAT + fixed Elastic IPs for tenants who need allowlisting | First such customer (Enterprise) | Per-tenant dedicated egress group |
 | Aggregator as its own service | Counter flush load on workers | Reads result logs instead of in-memory counters |
-| Replace SQS `events` with **Kinesis** | Only if it measures cheaper at sustained volume (provisioned shards beat SQS per-request cost at very high steady rates, see `cost-model.md`) | Behind `IEventQueue`; adds replay |
+| Replace SQS `events` with **Kinesis** | Only if it measures cheaper at sustained volume (provisioned shards beat SQS per-request cost at very high steady rates, see `cost-model.md`) | Behind `IEventPublisher`; adds replay |
 | WAF on ingest | Abuse, compliance, or a customer asks | Scope rules to cut per-request charges |
 | Second cell | Sustained over 25,000 events/s, or a latency/residency requirement | Section 11 |
 

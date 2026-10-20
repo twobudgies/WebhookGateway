@@ -1,15 +1,20 @@
+using WebhookGateway.Contracts;
+
 namespace WebhookGateway.Dispatcher.Retry;
 
 /// <summary>
-/// Retry schedule from docs/architecture.md: the first attempt plus 8 retries (9 attempts) over about 24 hours,
-/// waiting 30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h (full jitter) between them, with the subscriber's
-/// <c>Retry-After</c> honored (capped).
+/// Retry schedule, by plan (docs/architecture.md section 6, decision D31):
+/// <list type="bullet">
+/// <item>Every plan starts with the same eight waits: 30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h (about 24 hours),
+/// each with full jitter.</item>
+/// <item>Advanced then waits two more days (about 3 days in total), Premium six more (about 7 days in total).</item>
+/// <item>Those daily waits use "equal jitter" (between half and all of 24 h) so the window stays close to 3 or 7 days.</item>
+/// <item>The subscriber's <c>Retry-After</c> is honored (already capped by the sender).</item>
+/// </list>
+/// An attempt number is 1-based; the first attempt is the original send.
 /// </summary>
 public sealed class RetryPolicy(Func<double> nextRandom)
 {
-    /// <summary>The first attempt plus one retry per backoff step.</summary>
-    public const int MaxAttempts = 9;
-
     private static readonly TimeSpan[] Backoff =
     [
         TimeSpan.FromSeconds(30),
@@ -22,6 +27,7 @@ public sealed class RetryPolicy(Func<double> nextRandom)
         TimeSpan.FromHours(10),
     ];
 
+    private static readonly TimeSpan DailyWait = TimeSpan.FromHours(24);
     private static readonly TimeSpan MinimumDelay = TimeSpan.FromSeconds(1);
 
     public static RetryPolicy CreateDefault() =>
@@ -29,22 +35,44 @@ public sealed class RetryPolicy(Func<double> nextRandom)
         new(() => Random.Shared.NextDouble());
 #pragma warning restore CA5394
 
+    /// <summary>The first attempt plus one retry per wait for the plan.</summary>
+    public static int MaxAttempts(PlanTier plan) => 1 + Backoff.Length + DailyRetries(plan);
+
+    /// <param name="plan">The tenant's plan tier.</param>
     /// <param name="failedAttempt">The attempt number (1-based) that just failed.</param>
     /// <param name="retryAfter">The subscriber's requested delay, already capped, if any.</param>
     /// <returns>How long to wait before the next attempt, or null when attempts are exhausted.</returns>
-    public TimeSpan? NextDelay(int failedAttempt, TimeSpan? retryAfter)
+    public TimeSpan? NextDelay(PlanTier plan, int failedAttempt, TimeSpan? retryAfter)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(failedAttempt, 1);
-        if (failedAttempt >= MaxAttempts)
+        if (failedAttempt >= MaxAttempts(plan))
         {
             return null;
         }
 
-        var ceiling = Backoff[failedAttempt - 1];
-        var jittered = TimeSpan.FromTicks((long)(ceiling.Ticks * Math.Clamp(nextRandom(), 0.0, 1.0)));
-        var delay = Max(jittered, Min(MinimumDelay, ceiling));
+        var random = Math.Clamp(nextRandom(), 0.0, 1.0);
+        TimeSpan delay;
+        if (failedAttempt <= Backoff.Length)
+        {
+            var ceiling = Backoff[failedAttempt - 1];
+            var jittered = TimeSpan.FromTicks((long)(ceiling.Ticks * random));
+            delay = Max(jittered, Min(MinimumDelay, ceiling));
+        }
+        else
+        {
+            delay = TimeSpan.FromTicks((long)(DailyWait.Ticks * (0.5 + (0.5 * random))));
+        }
+
         return retryAfter is { } requested ? Max(delay, requested) : delay;
     }
+
+    private static int DailyRetries(PlanTier plan) => plan switch
+    {
+        PlanTier.Basic => 0,
+        PlanTier.Advanced => 2,
+        PlanTier.Premium => 6,
+        _ => throw new ArgumentOutOfRangeException(nameof(plan), plan, "Unknown plan."),
+    };
 
     private static TimeSpan Max(TimeSpan a, TimeSpan b) => a >= b ? a : b;
 
