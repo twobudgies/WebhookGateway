@@ -23,6 +23,8 @@ Full flow in `docs/architecture.md`; boundary contracts in `docs/contracts.md`.
 .NET 10 SDK (pinned in `global.json`). From the repo root:
 
 ```
+make verify                                      # the one gate: format check + build + tests (also run by CI)
+
 dotnet build WebhookGateway.slnx -c Release      # warnings are errors
 dotnet test WebhookGateway.slnx -c Release
 dotnet format WebhookGateway.slnx --verify-no-changes
