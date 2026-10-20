@@ -30,20 +30,25 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
-### 2026-10-20 Roadmap execution (start Phase 0)
-- **Status:** in progress
-- **Why:** Approved roadmap in `docs/roadmap.md`. Owner role instruction: decide implementation myself, discuss only architecture-level.
-- **End goal:** Working local pipeline (Phase 1), then control plane + portal, then cloud with owner go-ahead.
-- **Plan / steps:**
-  - [x] Finalize docs (this PR)
-  - [x] Owner installed .NET 10.0.402 and Docker (verified); blocker cleared
-  - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
-  - [ ] P0-4 local dev environment (docker-compose)
-  - [ ] P1-1 shared Contracts project
-  - [ ] P0-3 verify/CI
-  - [ ] P1-2 migrations: only after the owner's final review of `database.md`
-- **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
-- **Resume from:** P0-4 (local dev environment: docker-compose with PostgreSQL, LocalStack, Valkey).
+### 2026-10-20 Roadmap execution (Phase 0 and 1, offline parts)
+- **Status:** waiting on the owner (merges and Docker); non-Docker work done
+- **Why:** Approved roadmap in `docs/roadmap.md`. Owner role: decide implementation myself, discuss only architecture-level. Owner was away, so work continued within the rules: routine items merged by me, `risky` items left as PRs.
+- **Done and merged to main:** P0-2 solution scaffold (PR #9).
+- **Open PRs (all green locally, `make verify` clean), merge order matters:**
+  - #10 Contracts project (P1-1, **risky: contract**) - includes `DeliveryMessage.OccurredAt` fix and the solution-wide `EventId` alias. Base for the rest.
+  - #11 `make verify` + GitHub Actions CI (P0-3, **risky: CI**), independent; CI passed on the PR.
+  - #12 Ingest `POST /v1/events` (P1-3a, **risky: auth**), stacked on #10.
+  - #13 Fan-out core (P1-5a), stacked on #10.
+  - #14 Dispatcher signing, SSRF-safe sender, retry policy (P1-6a, **risky: security**), stacked on #10.
+  - #15 Delivery processor (P1-6b/P1-7a), stacked on #14.
+  - #16 Core: rollup accumulator and latency histogram (P1-10a), stacked on #10.
+  - Branch `feature/local-dev-environment` (no PR): docker-compose stack (PostgreSQL, Valkey, Moto on 5050) + `scripts/dev-up.sh`; **not verified** because of the Docker problem below.
+- **Decision recorded:** D29 (retry = first attempt + 8 retries = 9 attempts).
+- **Blockers for the owner:**
+  1. Docker Desktop is stuck behind a "new license" dialog (process `--name=new-license`); new containers hang at "Starting". Open Docker Desktop, accept the terms, restart it, then `docker rm -f webhookgateway-dev-sqs-1 webhookgateway-dev-elasticmq-1 webhookgateway-dev-aws-1` (wedged containers).
+  2. Merge the `risky` PRs when reviewed (#10 first, then #12, #14; #11 anytime), then the stacked routine ones (#13, #15, #16) after their bases.
+  3. Final review of `database.md` (gates P1-2 migrations).
+- **Resume from:** after Docker works: verify and open the P0-4 PR (`./scripts/dev-up.sh`); then the AWS-backed adapters (SQS source/publishers, S3 archive, DynamoDB stores) with Moto and Testcontainers; Valkey limiter + idempotency + quota (P1-4); pacing (P1-8); connection permits (P1-9); scheduler loop; ControlPlane (P2). Offline-only options before that: pacing and connection-permit logic with in-memory state.
 
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress
