@@ -24,6 +24,19 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 
 ## Entries
 
+### 2026-10-20 Architecture v2 proposal (multi-tenant, plans, India region, global-ready)
+- **Status:** blocked (PR open, waiting on owner review; **no code until approved**)
+- **Why:** Owner wants the service available globally, deployed only in AWS India (ap-south-1) at first, multi-tenant with persistent config, plans Basic 100 / Advanced 500 / Premium 1000 events/s plus monthly caps. Wants the architecture finalized and reviewed with diagrams before any code.
+- **End goal:** Approved architecture + a prioritized list of work items; then autonomous implementation.
+- **Plan / steps:**
+  - [x] Archived old Ingest and Dispatcher repos (owner approved)
+  - [x] Rewrote `docs/architecture.md` as Proposal v2 with 6 Mermaid diagrams; added `docs/tenancy-and-limits.md`
+  - [x] Opened PR (not merged; owner reviews)
+  - [ ] Owner answers the 11 decisions in `architecture.md` section 12 and the open questions in `tenancy-and-limits.md` section 7
+  - [ ] Fold answers in; log as D20+ in `decisions.md`; update `contracts.md` (429 shape, batch endpoint) and `database.md` (plans, usage, home_region); owner finalizes `database.md`
+  - [ ] Derive the work-item list (`todos.md`) and move to orchestrator build / implementation
+- **Resume from:** wait for the owner's review comments on the PR; apply them.
+
 ### 2026-10-20 Monorepo migration plan (Global becomes the monorepo)
 - **Status:** in progress (import done on branch `chore/monorepo-import`; PR pending; archiving old repos waits for user)
 - **Why:** D14/D18. One repo so a single PR can change a contract and both services.

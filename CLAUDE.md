@@ -22,7 +22,8 @@ Full flow in `docs/architecture.md`; boundary contracts in `docs/contracts.md`.
 
 Keep detail in `docs/` and link it here rather than growing this file.
 
-- `docs/architecture.md`: end-to-end flow, components, boundaries between components
+- `docs/architecture.md`: end-to-end flow, components, deployment, going global (**proposal v2, in review**)
+- `docs/tenancy-and-limits.md`: plans, rate limits, quotas, tenant config (**proposal v1, in review**)
 - `docs/contracts.md`: shared message/event schemas, queue topics, APIs between components
 - `docs/database.md`: PostgreSQL design and migrations (**in review**)
 - `docs/workflow.md`: how work is done (agent-driven, GitHub)
