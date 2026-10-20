@@ -6,7 +6,6 @@ using WebhookGateway.Contracts.Messages;
 using WebhookGateway.Ingest.Limits;
 using WebhookGateway.Ingest.Publishing;
 using WebhookGateway.Ingest.Tenancy;
-using EventId = WebhookGateway.Contracts.Ids.EventId;
 
 namespace WebhookGateway.Ingest.Api;
 
