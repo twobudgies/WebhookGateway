@@ -30,8 +30,5 @@ Format: ID, date, decision, why. Add new entries at the bottom; do not rewrite h
 - **D26 (2026-10-20) Endpoint secrets use envelope encryption in the database with KMS**, not one Secrets Manager secret per endpoint (cost grows per endpoint).
 - **D27 (2026-10-20) Customer portal lives in its own repo `webhookgateway-portal` (React + TypeScript, Cognito login).** Contracts via OpenAPI published from this repo. Success history is shown in aggregate; per-event success lookup goes through Athena (no live index).
 - **D28 (2026-10-20) Monorepo + orchestrator repo.** (Recap of D14/D18/D19.) The orchestrator and the portal are separate repos; everything else is in `WebhookGateway`.
-<<<<<<< HEAD
 - **D29 (2026-10-20) Retry count clarified: the first attempt plus 8 retries (9 attempts) over about 24 h.** D7 said "8 attempts", but its eight backoff steps (30 s ... 10 h) sum to ~24 h only if each is followed by an attempt. Implemented in `RetryPolicy`; `architecture.md` updated.
-=======
 - **D30 (2026-10-20) Identifiers are a type prefix plus a UUIDv7, not ULIDs.** Owner asked on PR #10 why a custom ULID instead of the GUID every language supports. UUIDv7 (RFC 9562) is a standard GUID that is also time-ordered, native in .NET 10 (`Guid.CreateVersion7`) and Postgres `uuid`; the prefixes and typed wrappers stay for readability and type safety. Supersedes the ULID wording in `data-plane.md`.
->>>>>>> feature/contracts-project
