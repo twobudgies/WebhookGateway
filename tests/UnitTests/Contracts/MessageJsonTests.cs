@@ -80,7 +80,7 @@ public sealed class MessageJsonTests
     public void Deserialize_rejects_an_identifier_with_the_wrong_prefix()
     {
         const string json = """
-            {"schemaVersion":1,"eventId":"ten_01ARZ3NDEKTSV4RRFFQ69G5FAV","tenantId":"ten_01ARZ3NDEKTSV4RRFFQ69G5FAV",
+            {"schemaVersion":1,"eventId":"ten_0192f3a4-7c1b-7d2e-9a10-3b5c8e7f1a22","tenantId":"ten_0192f3a4-7c1b-7d2e-9a10-3b5c8e7f1a22",
              "type":"x","occurredAt":"2026-10-20T10:00:00Z","receivedAt":"2026-10-20T10:00:00Z",
              "idempotencyKey":null,"payload":{}}
             """;

@@ -22,11 +22,29 @@ public sealed class IdTests
 
     [Theory]
     [InlineData("evt_")]
-    [InlineData("ten_01ARZ3NDEKTSV4RRFFQ69G5FAV")] // wrong prefix for EventId
-    [InlineData("evt_notaulid")]
+    [InlineData("ten_0192f3a4-7c1b-7d2e-9a10-3b5c8e7f1a22")] // wrong prefix for EventId
+    [InlineData("evt_not-a-uuid")]
+    [InlineData("evt_0192f3a47c1b7d2e9a103b5c8e7f1a22")]     // must be the hyphenated form
     public void Parse_rejects_invalid_event_ids(string value)
     {
         Assert.Throws<FormatException>(() => EventId.Parse(value));
+    }
+
+    [Fact]
+    public void Parse_accepts_uppercase_and_returns_the_canonical_lowercase_form()
+    {
+        var id = EventId.Parse("evt_0192F3A4-7C1B-7D2E-9A10-3B5C8E7F1A22");
+
+        Assert.Equal("evt_0192f3a4-7c1b-7d2e-9a10-3b5c8e7f1a22", id.Value);
+    }
+
+    [Fact]
+    public void Ids_embed_a_standard_guid()
+    {
+        var id = TenantId.New();
+
+        Assert.Equal(7, id.Uuid.Version);
+        Assert.Equal(TenantId.Prefix + id.Uuid.ToString("D"), id.Value);
     }
 
     [Fact]
@@ -68,9 +86,9 @@ public sealed class IdTests
     }
 
     [Theory]
-    [InlineData("dlv_01ARZ3NDEKTSV4RRFFQ69G5FAV")]
-    [InlineData("dlv_01ARZ3NDEKTSV4RRFFQ69G5FAV-01ARZ3NDEKTSV4RRFFQ69G5FAV")]
-    [InlineData("xxx_01ARZ3NDEKTSV4RRFFQ69G5FAV_01ARZ3NDEKTSV4RRFFQ69G5FAV")]
+    [InlineData("dlv_0192f3a47c1b7d2e9a103b5c8e7f1a22")]
+    [InlineData("dlv_0192f3a47c1b7d2e9a103b5c8e7f1a22-0192f3a47c1b7d2e9a103b5c8e7f1a22")]
+    [InlineData("xxx_0192f3a47c1b7d2e9a103b5c8e7f1a22_0192f3a47c1b7d2e9a103b5c8e7f1a22")]
     public void DeliveryId_rejects_invalid_values(string value)
     {
         Assert.Throws<FormatException>(() => DeliveryId.Parse(value));

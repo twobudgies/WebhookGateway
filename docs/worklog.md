@@ -39,7 +39,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] Owner installed .NET 10.0.402 and Docker (verified); blocker cleared
   - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
-  - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): ULID ids, event/delivery/result messages, JSON options; 26 tests pass
+  - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): prefixed UUIDv7 ids (D30), event/delivery/result messages, JSON options; 26 tests pass
   - [x] P1-6a Dispatcher core (PR open, `risky` security: needs owner merge): Standard Webhooks signing (verified against the spec test vector), SSRF protection (URL validation + per-connection IP policy, no redirects), signed HTTP sender with outcome classification (2xx / retry / final / 410), retry schedule (9 attempts, D29). Not yet: SQS consumption (P1-6b), `delivery_state` and retry scheduling (P1-7), circuit breaker, connection permits (P1-9), rollups (P1-10).
   - [x] P1-6b/P1-7a Delivery processor (PR open, stacked on the Dispatcher core PR): decision logic per delivery - skip finished duplicates, expire after 24 h backlog age, resolve endpoint and payload, send, then success (delete stale row) / retry queued (<=15 min) / scheduled index (>15 min) / exhausted / permanent failure; writes state only on non-success. In-memory ports; 17 unit tests. Not yet: SQS consumer loop, DynamoDB store, retry scheduler loop, archive payload resolver (need Docker to verify), circuit breaker, connection permits.
   - [ ] P0-3 verify/CI
