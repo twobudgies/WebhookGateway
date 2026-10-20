@@ -40,6 +40,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
   - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): ULID ids, event/delivery/result messages, JSON options; 26 tests pass
+  - [x] P1-6a Dispatcher core (PR open, `risky` security: needs owner merge): Standard Webhooks signing (verified against the spec test vector), SSRF protection (URL validation + per-connection IP policy, no redirects), signed HTTP sender with outcome classification (2xx / retry / final / 410), retry schedule (9 attempts, D29). Not yet: SQS consumption (P1-6b), `delivery_state` and retry scheduling (P1-7), circuit breaker, connection permits (P1-9), rollups (P1-10).
   - [ ] P0-3 verify/CI
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
 - **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
