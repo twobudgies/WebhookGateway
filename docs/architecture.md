@@ -321,7 +321,7 @@ Rough Stage 2 sizing (assumptions to be replaced by the load test): 5,000 events
 | Region outage survival | Multi-AZ only | Second cell with replicated config |
 | Low latency near producers | No | More cells, edge routing by home region |
 
-Rules kept from day one: a cell is self-contained; no region in code or data; globally unique prefixed ULIDs; `home_region` on every tenant; IaC parameterized by region.
+Rules kept from day one: a cell is self-contained; no region in code or data; globally unique prefixed UUIDv7 ids; `home_region` on every tenant; IaC parameterized by region.
 
 ## 12. Decisions needed from the owner
 

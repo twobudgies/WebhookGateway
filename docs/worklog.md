@@ -39,7 +39,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] Owner installed .NET 10.0.402 and Docker (verified); blocker cleared
   - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
-  - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): ULID ids, event/delivery/result messages, JSON options; 26 tests pass
+  - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): prefixed UUIDv7 ids (D30), event/delivery/result messages, JSON options; 26 tests pass
   - [x] P1-5a Fan-out core (PR open, stacked on the Contracts PR; routine, can merge once #10 is merged): subscription matching (exact or `*`), deterministic delivery ids, tier queue selection, inline vs by-reference payload, archive-before-publish, consumer loop that acks only after publish; in-memory ports; 14 new unit tests. Not yet: AWS-backed source/publisher/archive (P1-5b, needs Docker), pacing (P1-8).
   - [ ] P0-3 verify/CI
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
