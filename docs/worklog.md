@@ -31,18 +31,19 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Resume from:** see the next entry (roadmap execution).
 
 ### 2026-10-20 Roadmap execution (start Phase 0)
-- **Status:** blocked (waiting on owner to install .NET 10 SDK and Docker)
+- **Status:** in progress
 - **Why:** Approved roadmap in `docs/roadmap.md`. Owner role instruction: decide implementation myself, discuss only architecture-level.
 - **End goal:** Working local pipeline (Phase 1), then control plane + portal, then cloud with owner go-ahead.
 - **Plan / steps:**
   - [x] Finalize docs (this PR)
-  - [ ] P0-2 solution scaffold
+  - [x] Owner installed .NET 10.0.402 and Docker (verified); blocker cleared
+  - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
   - [ ] P1-1 shared Contracts project
   - [ ] P0-3 verify/CI
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
 - **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
-- **Resume from:** after the owner installs a .NET 10 SDK and Docker (or Colima), start P0-2 (solution scaffold) and P0-4 (local dev environment).
+- **Resume from:** P0-4 (local dev environment: docker-compose with PostgreSQL, LocalStack, Valkey).
 
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress

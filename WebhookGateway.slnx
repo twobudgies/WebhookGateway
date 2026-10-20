@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Contracts/">
+    <Project Path="src/Contracts/WebhookGateway.Contracts.csproj" />
+  </Folder>
+  <Folder Name="/src/ControlPlane/">
+    <Project Path="src/ControlPlane/WebhookGateway.ControlPlane.csproj" />
+  </Folder>
+  <Folder Name="/src/Dispatcher/">
+    <Project Path="src/Dispatcher/WebhookGateway.Dispatcher.csproj" />
+  </Folder>
+  <Folder Name="/src/FanOut/">
+    <Project Path="src/FanOut/WebhookGateway.FanOut.csproj" />
+  </Folder>
+  <Folder Name="/src/Ingest/">
+    <Project Path="src/Ingest/WebhookGateway.Ingest.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/IntegrationTests/">
+    <Project Path="tests/IntegrationTests/WebhookGateway.IntegrationTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/UnitTests/">
+    <Project Path="tests/UnitTests/WebhookGateway.UnitTests.csproj" />
+  </Folder>
+</Solution>

@@ -26,4 +26,4 @@ Decisions history: `../../docs/decisions.md` (read when you need the why).
 
 ## This component
 
-TODO: build/test commands, project layout, conventions.
+Build/test commands are in the root `CLAUDE.md`. Project: `WebhookGateway.Dispatcher.csproj`. Layout and conventions: TODO as the component is built.
