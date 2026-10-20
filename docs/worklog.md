@@ -24,6 +24,20 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 
 ## Entries
 
+### 2026-10-20 Monorepo migration plan (Global becomes the monorepo)
+- **Status:** blocked (waiting on user go-ahead for repo-structure changes; see decisions D18)
+- **Why:** D14/D18. One repo so a single PR can change a contract and both services.
+- **End goal:** `WebhookGateway` monorepo with `src/Ingest`, `src/Dispatcher`, existing `docs/`; old Ingest/Dispatcher repos archived; separate private orchestrator repo exists.
+- **State found:** Ingest and Dispatcher each have only README.md + CLAUDE.md and 3 commits, so history import is trivial. All three repos clean on `main`.
+- **Plan / steps (nothing below is executed yet):**
+  - [ ] User: create private repo `twobudgies/webhookgateway-orchestrator` (empty)
+  - [ ] Optional rename: GitHub Settings -> rename `WebhookGateway.Global` to `WebhookGateway` (old URL redirects); then `git remote set-url origin ...` locally
+  - [ ] On a branch in Global: `git subtree add --prefix=src/Ingest <ingest-remote> main` and same for Dispatcher (keeps history); fold their CLAUDE.md content into the root `CLAUDE.md`
+  - [ ] Update root `CLAUDE.md`, README and `workflow.md` for the single-repo layout; add `Makefile` with `verify` / `verify-fast` stubs
+  - [ ] Merge via PR, then archive `WebhookGateway.Ingest` and `.Dispatcher` on GitHub (archive, not delete)
+  - [ ] Then spec phase 0 (verify unverified items) and phase 2 (build orchestrator)
+- **Resume from:** ask the user to do the first two bullets (create orchestrator repo; confirm rename), then run the subtree imports.
+
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress
 - **Why:** User answered the open architecture questions from `orchestrator-spec.md` section 15; the draft cannot be finalized until they are acted on.
