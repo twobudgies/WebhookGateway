@@ -35,7 +35,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] Copied it to `Global/docs/orchestrator-spec.md` (byte-identical, verified with `cmp`) and indexed it in `CLAUDE.md`
   - [x] Committed on branch `docs/consolidate-docs-and-worklog`
   - [ ] Delete `WebhookGateway/docs/` (the stray copy). Needs user OK: destructive
-  - [ ] Open a PR to `main` (`gh` is not installed, so this needs `gh` set up or a manual PR)
+  - [x] PR opened: https://github.com/twobudgies/WebhookGateway.Global/pull/1 (`gh` is installed and authenticated now; `workflow.md` tooling note is outdated)
 - **Touched:** `WebhookGateway/docs/architecture-spec.md` (to remove), `Global/docs/worklog.md` (new), `Global/docs/orchestrator-spec.md` (new), `Global/CLAUDE.md`
-- **Resume from:** ask the user to confirm deleting `WebhookGateway/docs/`, then open the PR.
+- **Resume from:** ask the user to confirm deleting `WebhookGateway/docs/`, then merge PR #1 (not merged yet; docs-only, no risky paths).
 - **Note:** the spec says it replaces `workflow.md` and decisions D13 **only on the user's approval**. It is still a draft; do not treat it as the active workflow.
