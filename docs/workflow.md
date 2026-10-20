@@ -13,7 +13,7 @@ The user (product owner) finalizes the foundations once and afterwards **adds fe
 2. Implement in the owning repo(s) on a branch `feature/<short-name>` (or `fix/...`, `chore/...`). Never commit to `main` directly.
 3. Add tests (unit; integration against PostgreSQL via Testcontainers; SQS via LocalStack where needed). Build and tests must pass locally before pushing.
 4. Open a PR to `main` with: what/why, affected repos, contract or migration changes, test evidence. Cross-repo changes get linked PRs (Global first).
-5. **Autonomous mode (standing approval from the user, 2026-10-20):** the agent creates branches, writes code and integration tests, fixes failures, pushes, and **merges to `main` itself** once build and tests pass. No per-PR user review is required. The user may still comment after the fact; the agent follows up with fixes.
+5. **Autonomous mode (standing approval from the user, 2026-10-20):** the agent creates branches, writes code and integration tests, fixes failures, pushes, opens a **real GitHub PR for every feature (for tracking)**, and **merges that PR into `main` itself** once build and tests pass. The user can comment on the PR at any time; the agent reads PR comments and follows up. No per-PR user review is required. The user may still comment after the fact; the agent follows up with fixes.
 
 ## Rules
 
@@ -21,7 +21,7 @@ The user (product owner) finalizes the foundations once and afterwards **adds fe
 - Migrations are forward-only and backward compatible with the previous app version (expand, then contract) so deploys can roll back.
 - No secrets in git. Config via environment / Secrets Manager.
 - Standing approval covers: branch creation, commits, pushes, merging to `main` in the three repos, adding/fixing tests. It does **not** cover: deploying to or changing AWS resources, dropping/rewriting data, force-pushing or rewriting `main` history, or finalizing items marked *in review* (e.g. `database.md`). Ask first for those.
-- Merge only when build + all tests pass. Use `--no-ff` merges so history shows the branch. Delete merged branches.
+- Merge only when build + all tests pass. Merge via the GitHub PR (merge commit, no squash) so history shows the branch. Delete merged branches.
 - Integration tests are required for any feature that touches the database, SQS or HTTP boundaries.
 - Agents record non-obvious choices in `decisions.md`; unknowns are asked, not guessed.
 
