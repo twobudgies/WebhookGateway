@@ -107,7 +107,7 @@ public sealed class DeliveryProcessor(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        var delay = retryPolicy.NextDelay(message.Attempt, result.RetryAfter);
+        var delay = retryPolicy.NextDelay(tier, message.Attempt, result.RetryAfter);
         if (delay is null)
         {
             await RecordAsync(message, DeliveryStatus.Exhausted, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);

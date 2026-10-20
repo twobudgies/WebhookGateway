@@ -124,11 +124,25 @@ public sealed class DeliveryProcessorTests
     {
         _sender.Enqueue(Retry());
 
-        var action = await Processor().ProcessAsync(Message(attempt: RetryPolicy.MaxAttempts), PlanTier.Basic, CancellationToken.None);
+        var action = await Processor().ProcessAsync(Message(attempt: RetryPolicy.MaxAttempts(PlanTier.Basic)), PlanTier.Basic, CancellationToken.None);
 
         Assert.Equal(DeliveryAction.Exhausted, action);
         Assert.Empty(_retries.Published);
         Assert.Equal(DeliveryStatus.Exhausted, Assert.Single(_state.Rows).Status);
+    }
+
+    [Fact]
+    public async Task Premium_keeps_retrying_after_the_attempt_that_exhausts_Basic()
+    {
+        _sender.Enqueue(Retry());
+        var ninth = Message(attempt: RetryPolicy.MaxAttempts(PlanTier.Basic));
+
+        var action = await Processor().ProcessAsync(ninth, PlanTier.Premium, CancellationToken.None);
+
+        Assert.Equal(DeliveryAction.RetryScheduled, action);
+        var row = Assert.Single(_state.Rows);
+        Assert.Equal(DeliveryStatus.Scheduled, row.Status);
+        Assert.Equal(Now + TimeSpan.FromHours(24), row.NextAttemptAt);
     }
 
     [Fact]
