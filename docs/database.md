@@ -1,6 +1,6 @@
 # Database (PostgreSQL)
 
-Status: **IN REVIEW. Not final.** Do not build features that depend on details marked *(review)* without checking with the user. Once approved, change this line to `Final v1` and log it in `decisions.md`.
+Status: **IN REVIEW. Not final.** **Scope change proposed (2026-10-20, architecture v3):** PostgreSQL would hold *configuration only* (tenants, plans, overrides, api_keys, members, endpoints, subscriptions, usage_monthly). The `events`, `deliveries`, `delivery_attempts`, `outbox` and `audit_log` tables below move to the data plane (`data-plane.md`) if the owner approves. Until then, nothing here is built. Do not build features that depend on details marked *(review)* without checking with the user. Once approved, change this line to `Final v1` and log it in `decisions.md`.
 
 ## Engine
 

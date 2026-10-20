@@ -22,8 +22,10 @@ Full flow in `docs/architecture.md`; boundary contracts in `docs/contracts.md`.
 
 Keep detail in `docs/` and link it here rather than growing this file.
 
-- `docs/architecture.md`: end-to-end flow, components, deployment, going global (**proposal v2, in review**)
-- `docs/tenancy-and-limits.md`: plans, rate limits, quotas, tenant config (**proposal v1, in review**)
+- `docs/architecture.md`: end-to-end flow, components, deployment, going global, 30k events/s design (**proposal v3, in review**)
+- `docs/data-plane.md`: streams, queues, DynamoDB tables, S3 layout for the high-volume path (**proposal, in review**)
+- `docs/tenancy-and-limits.md`: plans, accept/delivery/connection limits, quotas, tenant config (**proposal v2, in review**)
+- `docs/portal.md`: customer UI spec (**proposal, in review**)
 - `docs/contracts.md`: shared message/event schemas, queue topics, APIs between components
 - `docs/database.md`: PostgreSQL design and migrations (**in review**)
 - `docs/workflow.md`: how work is done (agent-driven, GitHub)
