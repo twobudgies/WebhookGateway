@@ -6,7 +6,8 @@ namespace WebhookGateway.Contracts.Messages;
 /// <summary>
 /// One delivery to send, queues <c>deliveries-{tier}</c> (Fan-out to Dispatcher). The payload is inline up to
 /// about 200 KB; larger payloads set <see cref="PayloadRef"/> (S3 archive pointer) and leave
-/// <see cref="Payload"/> null. See docs/data-plane.md section 3.
+/// <see cref="Payload"/> null. <see cref="OccurredAt"/> is the producer's event time, needed for the outbound
+/// webhook body. See docs/data-plane.md section 3.
 /// </summary>
 public sealed record DeliveryMessage(
     int SchemaVersion,
@@ -15,6 +16,7 @@ public sealed record DeliveryMessage(
     DeliveryId DeliveryId,
     EndpointId EndpointId,
     string EventType,
+    DateTimeOffset OccurredAt,
     int Attempt,
     DateTimeOffset CreatedAt,
     DateTimeOffset NotBefore,

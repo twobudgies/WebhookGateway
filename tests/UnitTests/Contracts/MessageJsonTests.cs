@@ -45,6 +45,7 @@ public sealed class MessageJsonTests
             DeliveryId.For(eventId, endpointId),
             endpointId,
             "order.created",
+            OccurredAt: Now,
             Attempt: 1,
             Now,
             Now,
@@ -55,6 +56,7 @@ public sealed class MessageJsonTests
 
         Assert.Equal(message.DeliveryId, back.DeliveryId);
         Assert.Equal(1, back.Attempt);
+        Assert.Equal(Now, back.OccurredAt);
         Assert.Null(back.PayloadRef);
         Assert.Equal(1, back.Payload!.Value.GetProperty("a").GetInt32());
     }
