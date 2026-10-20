@@ -18,7 +18,7 @@ Webhook-as-a-service that competes with established players: tenants register en
 | Event queue | **SQS** | SQS, or Kinesis if it becomes cheaper (section 10) |
 | Everything else | Same components and same code | Same components, bigger and sharded |
 
-The point of staging: **no rewrite between stages.** Each cost-saving shortcut sits behind an interface (`IEventQueue`, `IRateLimiter`, `IStateStore`) or is a deployment choice, and section 10 lists the exact swap and the trigger that justifies it.
+The point of staging: **no rewrite between stages.** Each cost-saving shortcut sits behind an interface (`IEventPublisher`, `IRateLimiter`, `IStateStore`) or is a deployment choice, and section 10 lists the exact swap and the trigger that justifies it.
 
 Launch scope: one AWS region (`ap-south-1`); public API reachable worldwide. Out of scope for v1: event transformation, per-endpoint ordering, non-HTTP destinations, active-active multi-region.
 
@@ -306,7 +306,7 @@ SQS standard has no throughput limit, so the same design reaches 30,000 events/s
 | RDS to Aurora PostgreSQL | Config load or availability | Same engine |
 | Add NAT + fixed Elastic IPs for tenants who need allowlisting | First such customer (Enterprise) | Per-tenant dedicated egress group |
 | Aggregator as its own service | Counter flush load on workers | Reads result logs instead of in-memory counters |
-| Replace SQS `events` with **Kinesis** | Only if it measures cheaper at sustained volume (provisioned shards beat SQS per-request cost at very high steady rates, see `cost-model.md`) | Behind `IEventQueue`; adds replay |
+| Replace SQS `events` with **Kinesis** | Only if it measures cheaper at sustained volume (provisioned shards beat SQS per-request cost at very high steady rates, see `cost-model.md`) | Behind `IEventPublisher`; adds replay |
 | WAF on ingest | Abuse, compliance, or a customer asks | Scope rules to cut per-request charges |
 | Second cell | Sustained over 25,000 events/s, or a latency/residency requirement | Section 11 |
 
