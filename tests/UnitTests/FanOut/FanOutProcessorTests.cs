@@ -103,6 +103,7 @@ public sealed class FanOutProcessorTests
         Assert.Equal(Now, message.CreatedAt);
         Assert.Equal(Now, message.NotBefore);
         Assert.Equal("order.created", message.EventType);
+        Assert.Equal(e.OccurredAt, message.OccurredAt);
         Assert.Null(message.PayloadRef);
         Assert.Equal(42, message.Payload!.Value.GetProperty("orderId").GetInt32());
     }

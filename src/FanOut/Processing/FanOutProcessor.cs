@@ -78,6 +78,7 @@ public sealed class FanOutProcessor(
             DeliveryId.For(e.EventId, endpointId),
             endpointId,
             e.Type,
+            e.OccurredAt,
             Attempt: 1,
             CreatedAt: now,
             NotBefore: now,
