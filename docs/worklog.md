@@ -24,13 +24,14 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 
 ## Entries
 
-### 2026-10-20 Architecture v3 proposal (30k events/s per cell, pacing, connection limits, portal)
+### 2026-10-20 Architecture v4 proposal (cost-first Stage 1 on SQS, scale path to 30k events/s)
 - **Status:** blocked (PR #6 open, waiting on owner review; **no code until approved**)
-- **Why:** Owner wants to compete with established players: one Asia-region cell must handle 5k-10k events/s normally and 30k/s peak. Accept bursts by plan but deliver steadily; cap per-tenant connections so slow consumers cannot starve others; customer portal showing failures, success counts, progress and slow consumers. v2 (sync Postgres outbox) only scaled to ~2k/s, so v3 replaces it.
+- **Why:** Owner said (2026-10-20): avoid Kinesis (budget), use SQS initially, keep price as low as possible; traffic will be small at first. v4 replaces the Kinesis design (v3) with a Stage 1 cost-first design (SQS, no NAT, no WAF, RDS, one Valkey node, Spot workers, no Aggregator service) and a documented Stage 2 path. Earlier: owner wants to compete with established players: one Asia-region cell must handle 5k-10k events/s normally and 30k/s peak. Accept bursts by plan but deliver steadily; cap per-tenant connections so slow consumers cannot starve others; customer portal showing failures, success counts, progress and slow consumers. v2 (sync Postgres outbox) only scaled to ~2k/s, so v3 replaces it.
 - **End goal:** Approved architecture and a prioritized work-item list; then autonomous implementation.
 - **Plan / steps:**
   - [x] Archived old Ingest and Dispatcher repos
-  - [x] `architecture.md` v3: Kinesis log, fan-out, SQS tiers, DynamoDB state for exceptions only, rollups, pacing (5.1), connection limits, sizing for 5k/10k/30k, scale triggers, 15 decisions
+  - [x] `architecture.md` v4: SQS events + deliveries, DynamoDB state for exceptions only, rollups written by workers, pacing (6.1), connection limits (6.2), Stage 2 swap table, 18 decisions
+  - [x] New `cost-model.md` (Stage 1 floor ~$200-250/month, ~$1.6 per million events; prices unverified)
   - [x] New `data-plane.md`, `portal.md`; `tenancy-and-limits.md` v2; `database.md` scope note
   - [ ] Owner answers decisions (architecture section 12, tenancy section 7) via PR comments
   - [ ] Fold answers in; log D20+ in `decisions.md`; update `contracts.md`, `database.md`

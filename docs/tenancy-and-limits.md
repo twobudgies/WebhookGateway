@@ -56,10 +56,10 @@ flowchart TD
   M -- "over quota" --> F3["429 quota_exceeded"]
   M -- "ok" --> G{"Backlog under cap?"}
   G -- "no" --> F4["429 backlog_full"]
-  G -- "yes" --> P["Append to Kinesis, 202"]
+  G -- "yes" --> P["Enqueue to SQS, 202"]
 ```
 
-- **Token bucket** per tenant, atomic Lua script, capacity = burst, refill = plan rate. Ingest tasks reserve tokens in chunks (about 20) to cut Valkey calls at 30,000 events/s.
+- **Token bucket** per tenant, atomic Lua script, capacity = burst, refill = plan rate. Ingest tasks reserve tokens in chunks (about 20) to cut Valkey calls at high volume.
 - **Monthly counter:** Valkey `INCRBY`, key expiring 40 days after month end, flushed to PostgreSQL `usage_monthly` once a minute and at shutdown. After a cache loss it is reseeded from PostgreSQL (under-counts at most one minute, never over-counts).
 - **Backlog gauge:** pending deliveries per tenant = created minus completed, kept in Valkey from fan-out and Dispatcher counters (approximate, reconciled by the Aggregator).
 - **Degraded mode:** if Valkey is unreachable, Ingest uses a local limiter at `plan rate / running tasks`, keeps accepting, and alarms.

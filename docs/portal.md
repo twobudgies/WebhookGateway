@@ -69,7 +69,7 @@ Cursor pagination everywhere; bulk replay is rate-limited per tenant and runs as
 
 ## 5. Delivery plan
 
-1. Overview + Endpoints + Failures with replay (the core value), after the Aggregator and `delivery_state` exist.
+1. Overview + Endpoints + Failures with replay (the core value), after the workers write rollups and `delivery_state` exists.
 2. Event lookup, API keys, usage, subscriptions.
 3. Alerts, team, SSO.
 
