@@ -22,11 +22,11 @@ Full flow in `docs/architecture.md`; boundary contracts in `docs/contracts.md`.
 
 Keep detail in `docs/` and link it here rather than growing this file.
 
-- `docs/architecture.md`: end-to-end flow, components, deployment, cost-first Stage 1 on SQS, scale path to 30k events/s (**proposal v4, in review**)
-- `docs/cost-model.md`: monthly bill estimate and cost per million events (**estimate, unverified prices**)
-- `docs/data-plane.md`: SQS queues, DynamoDB tables, S3 layout for the high-volume path (**proposal, in review**)
-- `docs/tenancy-and-limits.md`: plans, accept/delivery/connection limits, quotas, tenant config (**proposal v2, in review**)
-- `docs/portal.md`: customer UI spec (**proposal, in review**)
+- `docs/architecture.md`: end-to-end flow, components, deployment, cost-first Stage 1 on SQS, scale path to 30k events/s (**approved v4**)
+- `docs/cost-model.md`: monthly bill estimate and cost per million events (**estimate; prices unverified**)
+- `docs/data-plane.md`: SQS queues, DynamoDB tables, S3 layout for the high-volume path (**approved**)
+- `docs/tenancy-and-limits.md`: plans, accept/delivery/connection limits, quotas, tenant config (**approved structure, provisional numbers**)
+- `docs/portal.md`: customer UI spec (**approved**)
 - `docs/contracts.md`: shared message/event schemas, queue topics, APIs between components
 - `docs/database.md`: PostgreSQL design and migrations (**in review**)
 - `docs/workflow.md`: how work is done (agent-driven, GitHub)

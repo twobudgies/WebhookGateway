@@ -24,21 +24,24 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 
 ## Entries
 
-### 2026-10-20 Architecture v4 proposal (cost-first Stage 1 on SQS, scale path to 30k events/s)
-- **Status:** blocked (PR #6 open, waiting on owner review; **no code until approved**)
-- **Why:** Owner said (2026-10-20): avoid Kinesis (budget), use SQS initially, keep price as low as possible; traffic will be small at first. v4 replaces the Kinesis design (v3) with a Stage 1 cost-first design (SQS, no NAT, no WAF, RDS, one Valkey node, Spot workers, no Aggregator service) and a documented Stage 2 path. Earlier: owner wants to compete with established players: one Asia-region cell must handle 5k-10k events/s normally and 30k/s peak. Accept bursts by plan but deliver steadily; cap per-tenant connections so slow consumers cannot starve others; customer portal showing failures, success counts, progress and slow consumers. v2 (sync Postgres outbox) only scaled to ~2k/s, so v3 replaces it.
-- **End goal:** Approved architecture and a prioritized work-item list; then autonomous implementation.
+### 2026-10-20 Architecture v4 approved; roadmap created
+- **Status:** done (approved 2026-10-20: owner approved all 18 decisions; PR #6 merged)
+- **Why / goal:** Owner wanted the architecture finalized (cost-first, SQS, scale path to 30k events/s, portal) before any code.
+- **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
+- **Resume from:** see the next entry (roadmap execution).
+
+### 2026-10-20 Roadmap execution (start Phase 0)
+- **Status:** in progress
+- **Why:** Approved roadmap in `docs/roadmap.md`. Owner role instruction: decide implementation myself, discuss only architecture-level.
+- **End goal:** Working local pipeline (Phase 1), then control plane + portal, then cloud with owner go-ahead.
 - **Plan / steps:**
-  - [x] Archived old Ingest and Dispatcher repos
-  - [x] `architecture.md` v4: SQS events + deliveries, DynamoDB state for exceptions only, rollups written by workers, pacing (6.1), connection limits (6.2), Stage 2 swap table, 18 decisions
-  - [x] New `cost-model.md` (Stage 1 floor ~$200-250/month, ~$1.6 per million events; prices unverified)
-  - [x] New `data-plane.md`, `portal.md`; `tenancy-and-limits.md` v2; `database.md` scope note
-  - [x] Owner reviewed v4 and said it looks fine (2026-10-20); added expiry rule, 14-day SQS retention, queue-age scaling, capacity table (9.1)
-  - [ ] Owner explicit approval of the 18 decisions + plan numbers (monthly caps etc. still placeholders)
-  - [ ] Fold answers in; log D20+ in `decisions.md`; update `contracts.md`, `database.md`
-  - [ ] Derive work items: load-test harness (L1), cost model (L2), then services; create `webhookgateway-portal` repo
-- **Touched:** docs/architecture.md, data-plane.md, portal.md, tenancy-and-limits.md, database.md, CLAUDE.md, worklog.md (branch `docs/architecture-v2-proposal`, PR #6)
-- **Resume from:** wait for the owner's review comments on PR #6; apply them.
+  - [x] Finalize docs (this PR)
+  - [ ] P0-2 solution scaffold
+  - [ ] P0-4 local dev environment (docker-compose)
+  - [ ] P1-1 shared Contracts project
+  - [ ] P0-3 verify/CI
+  - [ ] P1-2 migrations: only after the owner's final review of `database.md`
+- **Resume from:** P0-2.
 
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress

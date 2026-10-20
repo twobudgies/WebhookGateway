@@ -1,9 +1,9 @@
 # Architecture
 
-Status: **PROPOSAL v4, for owner review** (2026-10-20). Replaces v3 (Kinesis-based, too expensive for launch) and v2. Supersedes Baseline v1 once approved; later changes go through `decisions.md`.
+Status: **APPROVED v4** (owner approved all 18 decisions, 2026-10-20; see D20-D28). Plan numbers in `tenancy-and-limits.md` and prices in `cost-model.md` stay provisional. Later changes go through `decisions.md`.
 Companion docs: `cost-model.md` (monthly bill and per-event cost), `data-plane.md` (queues, tables, S3 layout), `tenancy-and-limits.md` (plans and limits), `portal.md` (customer UI), `database.md` (PostgreSQL, in review), `contracts.md`.
 
-Items marked **[DECIDE]** need an owner decision. They are collected in section 12.
+Items marked **[DECIDE]** were collected in section 12 and are now decided as recommended there.
 
 ## 1. Goal and staging
 

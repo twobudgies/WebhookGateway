@@ -1,6 +1,6 @@
 # Data plane
 
-Status: **PROPOSAL v2, for owner review** (2026-10-20). Describes the high-volume path from `architecture.md` v4 (SQS-based, cost-first). Names and shapes are proposals; `contracts.md` is updated after approval.
+Status: **APPROVED design** (2026-10-20, D20-D22); message shapes finalize when implemented. Describes the high-volume path from `architecture.md` v4 (SQS-based, cost-first). Names and shapes are proposals; `contracts.md` is updated after approval.
 
 PostgreSQL holds configuration only (`tenancy-and-limits.md` section 6). Everything per-event lives here.
 
