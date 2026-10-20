@@ -40,7 +40,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
   - [ ] P1-1 shared Contracts project
-  - [ ] P0-3 verify/CI
+  - [x] P0-3 verify/CI (PR open, `risky` CI: needs owner merge): `Makefile` (`make verify`) + GitHub Actions workflow; `make verify` passes locally
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
 - **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
 - **Resume from:** P0-4 (local dev environment: docker-compose with PostgreSQL, LocalStack, Valkey).
