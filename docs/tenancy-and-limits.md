@@ -1,6 +1,6 @@
 # Tenancy, plans and limits
 
-Status: **PROPOSAL v2, for owner review** (2026-10-20). Companion to `architecture.md` v3. Nothing here changes `contracts.md` or `database.md` until approved.
+Status: **APPROVED structure** (2026-10-20, D24); the numeric limits are provisional placeholders until the owner sets them. Companion to `architecture.md` v3. Nothing here changes `contracts.md` or `database.md` until approved.
 
 ## 1. Plans
 

@@ -1,6 +1,6 @@
 # Cost model
 
-Status: **ESTIMATE v1, for owner review** (2026-10-20). Written from public AWS list prices as I remember them (US-region style, with a small premium assumed for `ap-south-1`). **Not verified against the current ap-south-1 price list.** Treat every number as plus or minus 30% until work item L2 (verify prices, build a spreadsheet model, replace assumptions with load-test measurements). Amounts are USD per month; 1 USD is about 88 INR.
+Status: **ESTIMATE v1, approved as a planning basis** (2026-10-20); prices unverified until work item P0-1. Written from public AWS list prices as I remember them (US-region style, with a small premium assumed for `ap-south-1`). **Not verified against the current ap-south-1 price list.** Treat every number as plus or minus 30% until work item L2 (verify prices, build a spreadsheet model, replace assumptions with load-test measurements). Amounts are USD per month; 1 USD is about 88 INR.
 
 ## 1. Assumptions
 

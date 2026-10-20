@@ -1,6 +1,6 @@
 # Customer portal (UI)
 
-Status: **PROPOSAL v1, for owner review** (2026-10-20). Repo: `webhookgateway-portal` (to be created; decision #12). API contract: OpenAPI, published from this repo.
+Status: **APPROVED scope** (2026-10-20, D27); screens may be refined while building. Repo: `webhookgateway-portal` (to be created; decision #12). API contract: OpenAPI, published from this repo.
 
 ## 1. Purpose
 

@@ -1,7 +1,7 @@
 # Contracts
 
-Source of truth for anything crossing a repo boundary. Change here first.
-Status: **Draft v1**, aligned with `architecture.md`. JSON uses camelCase; timestamps are ISO-8601 UTC.
+Source of truth for anything crossing a component or repo boundary. Change here first.
+Status: **Draft v2**, aligned with `architecture.md` v4 and `data-plane.md`. JSON uses camelCase; timestamps are ISO-8601 UTC.
 
 ## 1. Producer API (Ingest, public)
 
@@ -11,23 +11,19 @@ Headers: `Authorization: Bearer <apiKey>`, `Idempotency-Key: <string, <=128>` (o
 ```json
 { "type": "order.created", "occurredAt": "2026-10-20T10:00:00Z", "data": { } }
 ```
-Response `202`: `{ "eventId": "evt_...", "deliveries": 3 }`
-Errors: `400` invalid, `401`, `413` (max 256 KB payload), `429`. Duplicate idempotency key returns the original `202` body.
+Response `202`: `{ "eventId": "evt_..." }` (fan-out happens asynchronously, so the delivery count is not known at accept time; read it from the portal/API)
+Errors: `400` invalid, `401`, `403 tenant_suspended`, `413` (max 256 KB payload), `429`. Duplicate idempotency key (within the plan's window) returns the original `202` body.
+`202` means *accepted* (durably queued), not *delivered*.
 
-## 2. DeliveryMessage (SQS `deliveries`, Ingest -> Dispatcher)
-
+`429` body and headers (`RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, `Retry-After`):
 ```json
-{
-  "schemaVersion": 1,
-  "tenantId": "ten_...",
-  "eventId": "evt_...",
-  "deliveryId": "dlv_...",
-  "endpointId": "ep_...",
-  "attempt": 1,
-  "enqueuedAt": "2026-10-20T10:00:00Z"
-}
+{ "error": { "code": "rate_limited | quota_exceeded | backlog_full", "message": "..." } }
 ```
-The message is a **pointer only**; payload and endpoint config are read from the database, so messages stay small and secrets never travel on the queue. Dispatcher re-enqueues the same shape with `attempt+1` for retries.
+Details and plan values: `tenancy-and-limits.md`.
+
+## 2. Internal messages (SQS)
+
+Defined in `data-plane.md` section 3: the **event message** (queue `events`, Ingest -> Fan-out) and the **DeliveryMessage** (queues `deliveries-{tier}`, Fan-out -> Dispatcher). The DeliveryMessage carries the payload **inline** (up to ~200 KB, else `payloadRef`), the endpoint id, attempt number and `notBefore`. Secrets never travel on the queue. Dispatcher re-enqueues the same shape with `attempt+1` for retries.
 
 ## 3. Outbound webhook request (Dispatcher -> subscriber)
 
@@ -39,19 +35,18 @@ Body:
 ```
 Success = any `2xx` within 10s.
 
-## 4. Database
+## 4. Data stores
 
-PostgreSQL, **in review**. Tables, ownership and consistency rules: see `database.md`. Services must not rely on DynamoDB.
+PostgreSQL holds configuration only (`database.md`, in review). Failed/retrying deliveries and rollups are in DynamoDB; payload archive and result logs are in S3 (`data-plane.md`). Services must not write to stores they do not own.
 
-## 5. Audit record (Dispatcher -> S3)
+## 5. Result log (Dispatcher -> S3)
 
-Batched JSON Lines at `s3://<audit-bucket>/tenant=<id>/date=<yyyy-mm-dd>/<batch>.jsonl.gz`:
-```json
-{ "ts": "...", "tenantId": "", "eventId": "", "deliveryId": "", "endpointId": "", "attempt": 1,
-  "statusCode": 200, "latencyMs": 123, "outcome": "Succeeded|Retry|Failed|Exhausted", "error": null }
-```
-No payload bodies and no secrets in audit records.
+Batched JSON Lines, one line per attempt, shape in `data-plane.md` section 3, at `s3://<bucket>/results/tenant=<id>/date=<yyyy-mm-dd>/<worker>-<minute>.jsonl.gz`. No payload bodies and no secrets.
+
+## 5b. Portal API (ControlPlane)
+
+`/portal/v1/...` read and management API for the customer portal; sketch in `portal.md` section 4. The OpenAPI document will be published from this repo; the portal generates its client from it.
 
 ## 6. Shared code
 
-IDs, enums and message DTOs are defined by this document. Until a shared package exists, each repo mirrors them; when duplication hurts, publish a `WebhookGateway.Contracts` NuGet package from this repo (see decisions).
+IDs, enums and message DTOs are defined by this document. In the monorepo they live in a shared project `src/Contracts` referenced by Ingest, FanOut, Dispatcher and ControlPlane; the portal uses the generated OpenAPI client.

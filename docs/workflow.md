@@ -27,6 +27,6 @@ The user (product owner) finalizes the foundations once and afterwards **adds fe
 
 ## Tooling status
 
-- Git remotes: `github.com/twobudgies/WebhookGateway.{Ingest,Dispatcher,Global}`, default branch `main`.
-- `gh` CLI is not installed on the dev machine yet; needed for agents to open PRs/issues. TODO: install and authenticate.
+- Git remotes: `github.com/twobudgies/WebhookGateway` (monorepo, default branch `main`; old Ingest/Dispatcher repos archived), `webhookgateway-orchestrator` (private, empty), `webhookgateway-portal` (to be created).
+- `gh` CLI is installed and authenticated; agents use it for PRs.
 - CI (GitHub Actions: build, test, format check) TODO per repo once code exists.
