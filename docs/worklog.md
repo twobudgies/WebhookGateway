@@ -31,7 +31,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Resume from:** see the next entry (roadmap execution).
 
 ### 2026-10-20 Roadmap execution (start Phase 0)
-- **Status:** in progress
+- **Status:** blocked (waiting on owner to install .NET 10 SDK and Docker)
 - **Why:** Approved roadmap in `docs/roadmap.md`. Owner role instruction: decide implementation myself, discuss only architecture-level.
 - **End goal:** Working local pipeline (Phase 1), then control plane + portal, then cloud with owner go-ahead.
 - **Plan / steps:**
@@ -41,7 +41,8 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [ ] P1-1 shared Contracts project
   - [ ] P0-3 verify/CI
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
-- **Resume from:** P0-2.
+- **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
+- **Resume from:** after the owner installs a .NET 10 SDK and Docker (or Colima), start P0-2 (solution scaffold) and P0-4 (local dev environment).
 
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress
