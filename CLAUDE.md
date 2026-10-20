@@ -26,8 +26,10 @@ Keep detail in `docs/` and link it here rather than growing this file.
 - `docs/contracts.md`: shared message/event schemas, queue topics, APIs between repos
 - `docs/database.md`: PostgreSQL design and migrations (**in review**)
 - `docs/workflow.md`: how work is done (agent-driven, GitHub)
+- `docs/orchestrator-spec.md`: **DRAFT v0.1** spec for the autonomous task-chain orchestrator (not yet approved; supersedes `workflow.md` only on approval)
 - `docs/glossary.md`: domain terms
 - `docs/decisions.md`: decision log (what, why, date)
+- `docs/worklog.md`: agent work log (why, end goal, status, resume point); **read first after any interruption, update as you work**
 
 Fill these in as the design firms up. Until then, treat missing information as unknown and ask.
 
