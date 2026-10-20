@@ -39,11 +39,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] Owner installed .NET 10.0.402 and Docker (verified); blocker cleared
   - [x] P0-2 solution scaffold (PR: feature/solution-scaffold): 5 src projects + unit/integration test projects, central package versions, build 0 warnings, 2 health tests pass
   - [ ] P0-4 local dev environment (docker-compose)
-  - [ ] P1-1 shared Contracts project
+  - [x] P1-1 shared Contracts project (PR open, `risky` per roadmap: needs owner merge): ULID ids, event/delivery/result messages, JSON options; 26 tests pass
   - [ ] P0-3 verify/CI
   - [ ] P1-2 migrations: only after the owner's final review of `database.md`
 - **Blocker found (2026-10-20):** this Mac has only .NET SDKs up to 8.0.421 (no .NET 10, which D1 requires) and **no Docker/container runtime** (needed for LocalStack, PostgreSQL, Valkey and Testcontainers). Code cannot be built or tested until the owner installs both.
-- **Resume from:** P0-4 (local dev environment: docker-compose with PostgreSQL, LocalStack, Valkey).
+- **Blocker 2 (2026-10-20):** Docker Desktop is stuck: a "new license" dialog is open (process `--name=new-license`) and new containers hang at "Starting". Needs the owner to open Docker Desktop, accept the terms, and probably restart it. Also remove the wedged containers `webhookgateway-dev-sqs-1` and `webhookgateway-dev-elasticmq-1` (`docker rm -f`). The dev stack (PostgreSQL, Valkey, Moto on port 5050) is written on branch `feature/local-dev-environment` but **not verified**.
+- **Resume from:** (a) once Docker works: run `./scripts/dev-up.sh`, fix issues, open the P0-4 PR; (b) meanwhile non-Docker items: P0-3 (CI), P1-3 onwards with in-memory fakes. Risky items (P0-3, P1-1, P1-2, P1-3, P1-6) are opened as PRs and left for the owner to merge; later branches are stacked on them.
 
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress
