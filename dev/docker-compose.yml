@@ -1,0 +1,35 @@
+# Local development stack. Dev-only credentials; never use these anywhere else.
+# Moto emulates SQS, DynamoDB, S3 and KMS in one container (no account or licence token needed).
+name: webhookgateway-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: webhook
+      POSTGRES_PASSWORD: webhook
+      POSTGRES_DB: webhook
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webhook -d webhook"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  aws:
+    image: motoserver/moto:5.1.18
+    ports: ["5050:5000"]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request;urllib.request.urlopen('http://localhost:5000/moto-api/')\""]
+      interval: 3s
+      timeout: 3s
+      retries: 20
