@@ -158,9 +158,11 @@ stateDiagram-v2
   RetryScheduled --> Exhausted: 8 attempts used
   RetryScheduled --> Parked: circuit open for endpoint
   Parked --> InFlight: circuit closes
+  InFlight --> Expired: older than max backlog age
   Delivered --> [*]
   Failed --> [*]
   Exhausted --> [*]
+  Expired --> [*]
 ```
 
 Retry policy: max 8 attempts over about 24 h; backoff ~30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h with full jitter; `Retry-After` honored (capped). Delays up to 15 min use SQS `DelaySeconds`; longer ones use a DynamoDB due-time index read by the **retry scheduler** (no per-retry EventBridge schedule, which would hit quotas in an outage). After exhaustion the item stays visible in the portal for replay.
@@ -186,6 +188,10 @@ flowchart LR
 
 - For each tenant (and each endpoint with a rate), Valkey holds `nextFreeSlot`. Fan-out reserves slots in chunks: `slot = max(now, nextFreeSlot)`, then `nextFreeSlot = slot + 1/rate`. A delivery with a later slot is enqueued with `DelaySeconds`, or parked in DynamoDB if more than 15 minutes away.
 - **Max backlog per plan** (events and age); beyond it Ingest returns `429 backlog_full` for that tenant only. The backlog is visible in the portal with an estimated drain time.
+- **Max backlog age (default 24 h):** a delivery that has waited longer than this is not sent; it is marked `Expired`, written to `delivery_state`, shown in the portal and can be replayed by the tenant. Stale webhooks are usually worse than late-but-flagged ones.
+- **SQS retention is set to the 14-day maximum** on `events` and `deliveries-*` so a long worker outage cannot drop accepted events; the S3 archive is the second copy.
+- `202` means *accepted*, not *delivered*; the API docs and portal say so.
+- **Scale workers on queue age**, not only CPU: add Fan-out/Dispatcher capacity when the oldest message exceeds the target, and alert on it. Keep Dispatcher capacity about 3 times Ingest at fan-out 3. Scaling Ingest alone is safe (the backlog absorbs it) but delivery delay grows as backlog divided by delivery speed.
 - The delivery-start target applies to tenants **within their delivery rate**; during a burst, delivery time is backlog divided by rate.
 
 ### 6.2 Slow and failing consumers (isolation)
@@ -275,6 +281,18 @@ Detail and assumptions in `cost-model.md`. All numbers are estimates from public
 | 100M events/month (about 40 events/s average) | ~$390 |
 | 1B events/month (about 400 events/s average) | ~$1.85k |
 | 30k events/s sustained (79B events/month), for reference | ~$130k |
+
+## 9.1 Capacity at a glance (estimates, not measured)
+
+Per-task speeds are assumptions (2 KB events, async I/O); the load test (work item L1) replaces them with measurements.
+
+| Setup | Events accepted/s | Deliveries sent/s |
+|---|---|---|
+| Launch sizing (2 Ingest tasks, 2 worker tasks) | ~500 to 1,000 | ~500 to 800 (about 200 to 300 events/s at fan-out 3) |
+| Launch design scaled out (about 10 Ingest, 10 worker tasks, no code change) | ~5,000 | ~5,000 to 6,000 |
+| Design ceiling (Stage 2, section 10) | **30,000** | **90,000** |
+
+Per tenant: accept 100 / 500 / 1,000 events/s (burst 2x), delivery 300 / 1,500 / 3,000 per second, by plan (`tenancy-and-limits.md`). Accepting can run ahead of delivering; SQS holds the difference. Fargate adds tasks in 1 to 2 minutes, so a sudden spike above capacity can cause brief `503`s; producers retry with an idempotency key, and we keep headroom or scheduled scaling before known peaks. A platform-wide cap for Stage 1 is set from the first load test.
 
 ## 10. Stage 2: the scale path (30,000 events/s ceiling), built on trigger
 

@@ -13,7 +13,7 @@ Status: **PROPOSAL v2, for owner review** (2026-10-20). Companion to `architectu
 | **Max concurrent connections** (all endpoints of the tenant) | 200 | 1,000 | 3,000 | custom |
 | Max concurrent connections per endpoint (default, tenant can lower) | 20 | 50 | 100 | custom |
 | Max backlog (pending deliveries) | 500k | 5M | 20M | custom |
-| Max backlog age | 24 h | 24 h | 24 h | custom |
+| Max backlog age (older deliveries are marked `Expired`, not sent; tenant can replay) | 24 h | 24 h | 24 h | custom |
 | Max endpoints | 10 | 50 | 200 | custom |
 | Per-endpoint delivery rate (default, tenant can lower) | 50/s | 200/s | 500/s | custom |
 | Max payload size | 256 KB | 256 KB | 256 KB | 256 KB |

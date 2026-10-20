@@ -53,7 +53,7 @@ No payload bodies and no secrets in result logs.
 
 | Key | Value |
 |---|---|
-| PK `tenantId#deliveryId` | status (`RetryScheduled`, `Parked`, `Scheduled`, `Failed`, `Exhausted`), attempt, nextAttemptAt, lastStatusCode, lastError, endpointId, eventId, payload (inline or `payloadRef`), createdAt, ttl |
+| PK `tenantId#deliveryId` | status (`RetryScheduled`, `Parked`, `Scheduled`, `Failed`, `Exhausted`, `Expired`), attempt, nextAttemptAt, lastStatusCode, lastError, endpointId, eventId, payload (inline or `payloadRef`), createdAt, ttl |
 | GSI1 `tenantId#status` / `updatedAt` | portal: failures list |
 | GSI2 `tenantId#endpointId` / `updatedAt` | portal: per-endpoint view |
 | GSI3 `dueBucket` / `nextAttemptAt` | retry scheduler (sharded buckets to avoid a hot partition) |
@@ -85,4 +85,4 @@ Workers keep counters in memory per key and flush every 10 seconds with atomic `
 
 ## 7. Retention
 
-SQS: 4 days by default (14 d maximum) as an incident buffer. `delivery_state`: plan retention via TTL. Archive and result logs: plan retention via S3 lifecycle. Rollups: 1-minute rows 7 d, hourly 90 d, daily 13 months.
+SQS: set to the 14-day maximum on all queues as an incident buffer (a delivery older than the plan's max backlog age is expired, not sent). `delivery_state`: plan retention via TTL. Archive and result logs: plan retention via S3 lifecycle. Rollups: 1-minute rows 7 d, hourly 90 d, daily 13 months.

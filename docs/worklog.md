@@ -33,7 +33,8 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
   - [x] `architecture.md` v4: SQS events + deliveries, DynamoDB state for exceptions only, rollups written by workers, pacing (6.1), connection limits (6.2), Stage 2 swap table, 18 decisions
   - [x] New `cost-model.md` (Stage 1 floor ~$200-250/month, ~$1.6 per million events; prices unverified)
   - [x] New `data-plane.md`, `portal.md`; `tenancy-and-limits.md` v2; `database.md` scope note
-  - [ ] Owner answers decisions (architecture section 12, tenancy section 7) via PR comments
+  - [x] Owner reviewed v4 and said it looks fine (2026-10-20); added expiry rule, 14-day SQS retention, queue-age scaling, capacity table (9.1)
+  - [ ] Owner explicit approval of the 18 decisions + plan numbers (monthly caps etc. still placeholders)
   - [ ] Fold answers in; log D20+ in `decisions.md`; update `contracts.md`, `database.md`
   - [ ] Derive work items: load-test harness (L1), cost model (L2), then services; create `webhookgateway-portal` repo
 - **Touched:** docs/architecture.md, data-plane.md, portal.md, tenancy-and-limits.md, database.md, CLAUDE.md, worklog.md (branch `docs/architecture-v2-proposal`, PR #6)
