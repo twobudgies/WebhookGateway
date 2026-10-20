@@ -18,6 +18,18 @@ The agent orchestrator lives in a separate private repo, `webhookgateway-orchest
 .NET 10 (LTS), C# 14, AWS (ECS Fargate, SQS, PostgreSQL (Aurora/RDS), S3, Secrets Manager, EventBridge Scheduler).
 Full flow in `docs/architecture.md`; boundary contracts in `docs/contracts.md`.
 
+## Build and test
+
+.NET 10 SDK (pinned in `global.json`). From the repo root:
+
+```
+dotnet build WebhookGateway.slnx -c Release      # warnings are errors
+dotnet test WebhookGateway.slnx -c Release
+dotnet format WebhookGateway.slnx --verify-no-changes
+```
+
+Projects: `src/{Contracts,Ingest,FanOut,Dispatcher,ControlPlane}`, `tests/{UnitTests,IntegrationTests}`. Package versions are central in `Directory.Packages.props`; shared compiler settings in `Directory.Build.props`.
+
 ## Where things live
 
 Keep detail in `docs/` and link it here rather than growing this file.
