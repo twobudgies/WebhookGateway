@@ -12,6 +12,7 @@ Status: **APPROVED structure** (2026-10-20, D24); the numeric limits are provisi
 | **Delivery** rate (deliveries/s, steady) | 300 | 1,500 | 3,000 | custom |
 | **Max concurrent connections** (all endpoints of the tenant) | 200 | 1,000 | 3,000 | custom |
 | Max concurrent connections per endpoint (default, tenant can lower) | 20 | 50 | 100 | custom |
+| **Retry window** (failed deliveries keep being retried for) | ~24 h | ~3 days | ~7 days | custom |
 | Max backlog (pending deliveries) | 500k | 5M | 20M | custom |
 | Max backlog age (older deliveries are marked `Expired`, not sent; tenant can replay) | 24 h | 24 h | 24 h | custom |
 | Max endpoints | 10 | 50 | 200 | custom |
