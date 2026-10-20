@@ -155,7 +155,7 @@ stateDiagram-v2
   InFlight --> RetryScheduled: 429, 5xx, timeout (row written)
   RetryScheduled --> InFlight: re-enqueued when due
   InFlight --> Failed: other 4xx (row written)
-  RetryScheduled --> Exhausted: 9 attempts used
+  RetryScheduled --> Exhausted: plan's attempts used
   RetryScheduled --> Parked: circuit open for endpoint
   Parked --> InFlight: circuit closes
   InFlight --> Expired: older than max backlog age
@@ -165,7 +165,7 @@ stateDiagram-v2
   Expired --> [*]
 ```
 
-Retry policy: the first attempt plus 8 retries (9 attempts) over about 24 h; waits ~30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h with full jitter; `Retry-After` honored (capped). Delays up to 15 min use SQS `DelaySeconds`; longer ones use a DynamoDB due-time index read by the **retry scheduler** (no per-retry EventBridge schedule, which would hit quotas in an outage). After exhaustion the item stays visible in the portal for replay.
+Retry policy (D31): the retry window depends on the plan: **Basic about 24 h** (first attempt plus 8 retries), **Advanced about 3 days**, **Premium about 7 days**. All plans start with the waits ~30 s, 2 m, 10 m, 30 m, 1 h, 4 h, 8 h, 10 h (full jitter); Advanced then adds two daily waits and Premium six (12 to 24 h each); `Retry-After` honored (capped). Delays up to 15 min use SQS `DelaySeconds`; longer ones use a DynamoDB due-time index read by the **retry scheduler** (no per-retry EventBridge schedule, which would hit quotas in an outage). After exhaustion the item stays visible in the portal for replay.
 
 ### 6.1 Accept fast, deliver steady (pacing)
 
