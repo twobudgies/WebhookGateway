@@ -31,24 +31,16 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Resume from:** see the next entry (roadmap execution).
 
 ### 2026-10-20 Roadmap execution (Phase 0 and 1, offline parts)
-- **Status:** waiting on the owner (merges and Docker); non-Docker work done
-- **Why:** Approved roadmap in `docs/roadmap.md`. Owner role: decide implementation myself, discuss only architecture-level. Owner was away, so work continued within the rules: routine items merged by me, `risky` items left as PRs.
-- **Done and merged to main:** P0-2 solution scaffold (PR #9).
-- **Open PRs (all green locally, `make verify` clean), merge order matters:**
-  - #10 Contracts project (P1-1, **risky: contract**) - includes `DeliveryMessage.OccurredAt` fix and the solution-wide `EventId` alias. Base for the rest.
-  - #11 `make verify` + GitHub Actions CI (P0-3, **risky: CI**), independent; CI passed on the PR.
-  - #12 Ingest `POST /v1/events` (P1-3a, **risky: auth**), stacked on #10.
-  - #13 Fan-out core (P1-5a), stacked on #10.
-  - #14 Dispatcher signing, SSRF-safe sender, retry policy (P1-6a, **risky: security**), stacked on #10.
-  - #15 Delivery processor (P1-6b/P1-7a), stacked on #14.
-  - #16 Core: rollup accumulator and latency histogram (P1-10a), stacked on #10.
-  - Branch `feature/local-dev-environment` (no PR): docker-compose stack (PostgreSQL, Valkey, Moto on 5050) + `scripts/dev-up.sh`; **not verified** because of the Docker problem below.
-- **Decision recorded:** D29 (retry = first attempt + 8 retries = 9 attempts).
+- **Status:** offline work merged to `main`; waiting on the owner for Docker; next steps below
+- **Why:** Approved roadmap in `docs/roadmap.md`. Owner role: decide implementation myself, discuss only architecture-level. Owner reviewed PR #10 and #14 comments and then said to merge.
+- **Merged to main (owner approved the merge; each passed `make verify` locally and CI):** #9 scaffold, #10 Contracts, #11 `make verify` + CI, #12 Ingest accept endpoint, #13 Fan-out core, #14 Dispatcher signing/SSRF/sender/retry, #16 Core rollups, #18 delivery processor (replaced #15, which GitHub closed when its base branch was deleted). Lesson: retarget stacked PRs to `main` **before** deleting the base branch.
+- **Decisions from owner review:** D30 identifiers are prefix + UUIDv7 (not ULID); D31 retry window by plan (Basic ~24 h, Advanced ~3 days, Premium ~7 days); D29 retry count clarified.
+- **What exists now:** Ingest `POST /v1/events` (API-key auth, local token bucket, validation, in-memory publisher); Fan-out processor + consumer (in-memory ports); Dispatcher signing, SSRF-safe sender, plan-based retry policy, delivery processor (in-memory ports); Core rollup accumulator. 183 unit + 18 integration tests.
+- **Not built yet:** every AWS adapter (SQS source/publishers, S3 archive, DynamoDB stores, retry scheduler loop), Valkey limiter/idempotency/quota, pacing, connection permits, ControlPlane, portal, IaC.
 - **Blockers for the owner:**
   1. Docker Desktop is stuck behind a "new license" dialog (process `--name=new-license`); new containers hang at "Starting". Open Docker Desktop, accept the terms, restart it, then `docker rm -f webhookgateway-dev-sqs-1 webhookgateway-dev-elasticmq-1 webhookgateway-dev-aws-1` (wedged containers).
-  2. Merge the `risky` PRs when reviewed (#10 first, then #12, #14; #11 anytime), then the stacked routine ones (#13, #15, #16) after their bases.
-  3. Final review of `database.md` (gates P1-2 migrations).
-- **Resume from:** after Docker works: verify and open the P0-4 PR (`./scripts/dev-up.sh`); then the AWS-backed adapters (SQS source/publishers, S3 archive, DynamoDB stores) with Moto and Testcontainers; Valkey limiter + idempotency + quota (P1-4); pacing (P1-8); connection permits (P1-9); scheduler loop; ControlPlane (P2). Offline-only options before that: pacing and connection-permit logic with in-memory state.
+  2. Final review of `database.md` (gates P1-2 migrations).
+- **Resume from:** branch `feature/local-dev-environment` (docker-compose with PostgreSQL, Valkey, Moto on 5050 + `scripts/dev-up.sh`, **unverified**): once Docker works, run `./scripts/dev-up.sh`, fix, open the P0-4 PR. Then AWS-backed adapters with Moto/Testcontainers; then P1-4 (Valkey limiter, idempotency, quota), P1-8 pacing, P1-9 connection permits, retry scheduler loop, P2 ControlPlane/portal. Check open PR comments first (`gh pr list`, then `gh api repos/twobudgies/WebhookGateway/pulls/<n>/comments`).
 
 ### 2026-10-20 Orchestrator spec: owner decisions recorded
 - **Status:** in progress
