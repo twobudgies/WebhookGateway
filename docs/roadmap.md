@@ -55,7 +55,29 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P4-1 | Orchestrator (`webhookgateway-orchestrator`), per `orchestrator-spec.md`; owner approval of that spec needed first | L+ | risky | P0-3 |
 | P4-2 | Stage 2 swaps from `architecture.md` section 10, each when its trigger fires | per item | risky | P3-4 |
 
-## Phase L: launch readiness (added 2026-10-21; target first paying customer within 1 to 3 months)
+## Phase O: open source and self-host (added 2026-10-21, now the main track; supersedes the AWS-first launch order of Phase L)
+
+Owner decision: make the repo public (Apache-2.0), goal adoption and reputation, run on Docker Compose on a local machine or any server. The AWS adapters stay as an optional backend and a "deploy on AWS" guide can follow; Phase L items about registering a company, payment and production AWS are postponed until there is demand (D52, D53).
+
+| ID | Work item | Size | Notes | Depends |
+|---|---|---|---|---|
+| O-1 | **Public-repo hygiene:** `LICENSE` (Apache-2.0), `NOTICE`, scan the full git history for secrets/personal data, check dependency licenses, `README.md` (what it is, features, architecture picture, quick start, status), `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` (how to report), issue and PR templates, repo description and topics | M | do first; blocks going public | |
+| O-2 | **PostgreSQL queue adapters** (`Backend:Mode=Postgres`): durable queue table with visibility timeout, delay, receive count and dead-letter, `SELECT ... FOR UPDATE SKIP LOCKED`; implements the event and delivery publishers/sources and the retry publisher | L | replaces SQS for self-host; target a few thousand messages per second on one Postgres | |
+| O-3 | **PostgreSQL state adapters:** delivery state + due index, rollups (upsert add), idempotency/quota when Valkey is absent | M | replaces DynamoDB | O-2 |
+| O-4 | **Archive adapter without S3:** Postgres (compressed batches) by default with a retention job, S3-compatible storage (any endpoint) optional | M | replaces S3 for self-host; the existing S3 adapter works with any S3-compatible service | |
+| O-5 | **Secrets without KMS:** a production-grade key provider from an environment variable or mounted file (envelope encryption with a master key), documented key rotation; KMS stays optional | S | D45 keeps KMS for AWS | |
+| O-6 | **One-command stack:** `docker compose up` brings up migrator, Ingest, Fan-out, Dispatcher, ControlPlane, PostgreSQL (+ optional Valkey) with generated secrets and healthchecks; prebuilt images published to GitHub Container Registry from CI | M | | O-2..O-5 |
+| O-7 | **Quick start that works in 5 minutes:** create a tenant and key, register an endpoint, send an event, see it arrive (a bundled demo receiver container that verifies the signature and prints events), plus a smoke test script run in CI | M | | O-6 |
+| O-8 | **Self-host docs:** configuration, upgrading and migrations, backups and restore, sizing (events per second per CPU, Postgres tuning), reverse proxy and TLS example (Caddy), monitoring (logs, metrics), security hardening, troubleshooting | M | | O-6 |
+| O-9 | **Metrics endpoint** (Prometheus format) and a sample Grafana dashboard: accepted, delivered, failed, retries, queue depth and age, latency | M | | O-6 |
+| O-10 | **Minimal built-in UI** (read-only admin page served by the ControlPlane: tenants, endpoints, recent failures, replay) so a self-hoster is not blind without the portal | L | the full portal (P2-2..P2-5) stays optional | O-6 |
+| O-11 | **Client SDKs / sample code** in C#, Java, PHP, Python, Node.js, Go, Ruby, cURL, tested in CI (this is S-5 from Phase 5, now part of the public launch) and the docs site (S-1..S-4, S-7) | L | | O-7 |
+| O-12 | **Release process:** semantic versions, changelog, signed images, GitHub Releases, upgrade notes, CI on pull requests from forks | S | | O-6 |
+| O-13 | **Launch the project:** announcement post, Show HN / Reddit / dev.to, comparison page honest about Svix/Hookdeck/others, "good first issue" labels, a discussion board | S | after O-7 and O-8 | O-8 |
+
+Going public (flip the repo to public) after O-1 and O-7. The load-test plan (LT items) now runs on a single Docker host and on AWS as an optional benchmark.
+
+## Phase L: launch readiness (added 2026-10-21; POSTPONED by D52: only needed if a hosted paid service is started later)
 
 Context from the owner: no registered organization yet, product launched on the web, advertised to developers, customers expected from anywhere in the world. "Owner" items need the owner (legal, money, accounts); "agent" items are mine. Not legal or tax advice: confirm the owner items with an accountant.
 

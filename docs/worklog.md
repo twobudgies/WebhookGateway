@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Open source and self-host (Phase O) - current main track
+- **Status:** in progress
+- **Why:** owner decided to publish the repo (Apache-2.0) for adoption and reputation, running on Docker Compose; hosted business postponed (D52, D53). Owner answers: goal adoption, Apache-2.0, real self-host backends, public after clean-up + quick start.
+- **Plan:** O-1 hygiene and license first, then O-2..O-5 Postgres/self-host adapters, O-6 compose stack, O-7 quick start, then docs/SDKs/UI as in Phase O. Go public after O-1 and O-7.
+- **Resume from:** O-1 (LICENSE, README, history secret scan), then O-2 Postgres queue.
+
 ### 2026-10-21 Market reality check (D51)
 - **Status:** done (answer given to the owner); follow-ups L-L12, L-L13 on the roadmap
 - **Why:** owner asked whether this can be a business and how big the market is.
