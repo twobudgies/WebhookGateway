@@ -66,7 +66,7 @@ No component logs yet. Sink decided: CloudWatch Logs, 14 days (D32, `logging.md`
 | L-3 | **done 2026-10-21** Backfill Ingest (P1-3): auth failures, validation rejects, rate-limit/quota rejects, publish failures (5xx), accepted (sampled) | M | | L-2 |
 | L-4 | **done** Backfill Fan-out (P1-5): batch received, no subscription match, archive write failure, delivery publish failure, ack failure, poison/deserialize failure | M | | L-2 |
 | L-5 | **done** (SSRF/blocked address appears as `error` on the failure line) Backfill Dispatcher (P1-6, P1-7): attempt outcome with status/latency/error class, SSRF block, retry scheduled, exhausted/expired, circuit breaker open/close, signing failure | M | | L-2 |
-| L-6 | Backfill Core rollups (P1-10): flush failures, dropped counters | S | **deferred:** the accumulator has no I/O; log when the flusher (P1-10) is built | | L-2 |
+| L-6 | Backfill Core rollups (P1-10): flush failures, dropped counters | S | **partly done:** the DynamoDB writer logs flush failures with row counts; the flush loop (not built yet) must log dropped counters | | L-2 |
 | L-7 | **done** Backfill SQS adapters (`src/Aws`): batch partial failure, receive/delete errors, queue URL resolution failure | S | | L-2 |
 | L-8 | Log hygiene tests: no secrets/payloads in log output | S | **partly done:** Dispatcher failure line test (ids yes, payload no); still to add for Ingest and Fan-out | L-3..L-5 |
 | L-9 | Sink: ship logs to the chosen store, retention, a saved query set for debugging by eventId/deliveryId (cloud, needs owner go-ahead) | M | aws | P3-2, sink decision |
