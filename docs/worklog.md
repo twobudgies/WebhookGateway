@@ -36,6 +36,10 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-22 Public launch, README demo GIF, SSRF hardening
+- **Status:** done
+- **Outcome:** repo made public by the owner (A: Gmail kept in old commits, new commits use the GitHub noreply address); private vulnerability reporting, secret scanning, topics and description set; `docs/media/quickstart.gif` (25 s, regenerate with `scripts/make-quickstart-gif.py`) at the top of the README; cloud metadata host names and `fd00:ec2::254` refused in every mode (D57).
+
 ### 2026-10-22 Swagger / OpenAPI (D56)
 - **Status:** PR open
 - **Outcome:** `src/ApiDocs`; `/docs` and `/openapi/v1.json` on Ingest (:8080) and ControlPlane (:8081); events and admin calls described with responses and security; tests; README section "Try the APIs in your browser (Swagger)"; `WG_API_DOCS` switch. The running local stack was rebuilt with it.

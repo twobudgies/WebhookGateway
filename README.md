@@ -4,6 +4,10 @@
 
 > **Status: alpha.** The whole pipeline works and is tested end to end, including real HTTP delivery with signature verification. It has not been run in production yet. Read [what is and is not there](#status-and-limits) before relying on it.
 
+![Quick start: docker compose up, then ./scripts/quickstart.sh creates a customer, sends an event and shows it delivered with a valid signature](docs/media/quickstart.gif)
+
+*The whole quick start in 25 seconds, condensed from a real run of `docker compose up -d` and `./scripts/quickstart.sh` (keys shortened).*
+
 ## Contents
 
 [Quick start](#quick-start) · [Use it from your app](#use-it-from-your-app) · [Sending events (API)](#sending-events-api) · [Receiving webhooks](#receiving-webhooks) · [Sample code](#sample-code) · [Operating it](#operating-it) · [Develop and extend](#develop-and-extend) · [Troubleshooting](#troubleshooting) · [Status and limits](#status-and-limits) · [Docs](#documentation)
