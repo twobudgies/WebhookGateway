@@ -37,7 +37,7 @@ Success = any `2xx` within 10s.
 
 ## 4. Data stores
 
-PostgreSQL holds configuration only (`database.md`, in review). Failed/retrying deliveries and rollups are in DynamoDB; payload archive and result logs are in S3 (`data-plane.md`). Services must not write to stores they do not own.
+PostgreSQL holds configuration only (`database.md`, final v1). Failed/retrying deliveries and rollups are in DynamoDB; payload archive and result logs are in S3 (`data-plane.md`). Services must not write to stores they do not own.
 
 ## 5. Result log (Dispatcher -> S3)
 

@@ -1,0 +1,8 @@
+{
+  "secret": "whsec_dGVzdC1zZWNyZXQta2V5LTAxMjM0NTY3ODlhYmNkZWY=",
+  "webhookId": "msg_test_1",
+  "timestamp": "1700000000",
+  "body": "{\"id\":\"evt_x\",\"type\":\"order.created\",\"data\":{\"orderId\":42}}",
+  "signatureHeader": "v1,ft5FTSZjMsbdZeTELtWI4p2Rhp9+88mD4gSAdGRkRZk=",
+  "note": "Fixed vector for the verify-webhook samples. Run them with TOLERANCE_SECONDS=999999999 because the timestamp is old."
+}

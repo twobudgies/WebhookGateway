@@ -45,4 +45,20 @@ public sealed class EndpointUrlValidatorTests
     {
         Assert.NotNull(EndpointUrlValidator.Validate(new Uri("/hook", UriKind.Relative)));
     }
+
+    [Theory]
+    [InlineData("http://receiver:8080/webhook")]
+    [InlineData("http://localhost:9000/hook")]
+    [InlineData("https://service.internal/hook")]
+    [InlineData("http://10.0.0.7/hook")]
+    public void Private_installs_may_target_internal_hosts(string url)
+    {
+        Assert.Null(EndpointUrlValidator.Validate(new Uri(url), allowInsecureHttp: true, allowPrivateNetworks: true));
+    }
+
+    [Fact]
+    public void Private_installs_still_cannot_target_the_metadata_address()
+    {
+        Assert.NotNull(EndpointUrlValidator.Validate(new Uri("http://169.254.169.254/latest"), allowInsecureHttp: true, allowPrivateNetworks: true));
+    }
 }

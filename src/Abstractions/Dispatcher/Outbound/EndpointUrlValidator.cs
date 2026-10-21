@@ -6,7 +6,7 @@ namespace WebhookGateway.Dispatcher.Outbound;
 public static class EndpointUrlValidator
 {
     /// <returns>Null when the URL is acceptable, otherwise the reason.</returns>
-    public static string? Validate(Uri url, bool allowInsecureHttp = false)
+    public static string? Validate(Uri url, bool allowInsecureHttp = false, bool allowPrivateNetworks = false)
     {
         ArgumentNullException.ThrowIfNull(url);
 
@@ -31,6 +31,13 @@ public static class EndpointUrlValidator
         }
 
         var host = url.IdnHost;
+        if (allowPrivateNetworks)
+        {
+            return IPAddress.TryParse(host.Trim('[', ']'), out var privateLiteral) && IpAddressPolicy.IsBlockedAllowingPrivate(privateLiteral)
+                ? "Address is not allowed."
+                : null;
+        }
+
         if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
             || host.EndsWith(".localhost", StringComparison.OrdinalIgnoreCase)
             || host.EndsWith(".internal", StringComparison.OrdinalIgnoreCase)

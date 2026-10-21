@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-22 One-command stack, samples, README (O-5..O-8, O-11 part)
+- **Status:** PR open; owner asked to be given the running app to test and a go/no-go for making the repo public
+- **Outcome:** `docker compose up` runs postgres, init (secrets), migrator, ingest, fanout, dispatcher, controlplane, demo receiver; `scripts/quickstart.sh`; six tested sample languages; README as the full guide; `docs/selfhost.md`; CI job `compose-smoke`; private-network option; stale "in review" statuses fixed. Verified from a clean state: quick start, 11 sample checks, and the retry path (failed endpoint leaves a scheduled retry).
+- **Go-public checklist for the owner:** see the final message of this session (CI green on main incl. compose-smoke; enable private vulnerability reporting; decide on a public contact email; accept that the commit author email is public; optional: published images, Node/PHP samples).
+
 ### 2026-10-21 Postgres self-host backend (O-2..O-4)
 - **Status:** PR open
 - **Outcome:** `Backend:Mode=Postgres` with queue, delivery state + due index, rollups, archive, idempotency, quota, maintenance job; hosts wired; tests on real PostgreSQL including the full pipeline without AWS. D54.

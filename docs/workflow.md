@@ -4,7 +4,7 @@ The user (product owner) finalizes the foundations once and afterwards **adds fe
 
 ## Phases
 
-1. **Foundation (user involved):** architecture, contracts, database, conventions. Items marked *in review* must be finalized by the user before dependent work starts. Current open item: `database.md`.
+1. **Foundation (user involved):** architecture, contracts, database, conventions. The foundation is final (architecture v4, contracts, `database.md` v1); open items are tracked in `roadmap.md`.
 2. **Feature delivery (agent-driven):** user describes a feature; the agent does the steps below.
 
 ## Feature loop
@@ -20,7 +20,7 @@ The user (product owner) finalizes the foundations once and afterwards **adds fe
 - Small PRs, one concern each. Conventional commit style (`feat:`, `fix:`, `chore:`, `docs:`).
 - Migrations are forward-only and backward compatible with the previous app version (expand, then contract) so deploys can roll back.
 - No secrets in git. Config via environment / Secrets Manager.
-- Standing approval covers: branch creation, commits, pushes, merging to `main` in the three repos, adding/fixing tests. It does **not** cover: deploying to or changing AWS resources, dropping/rewriting data, force-pushing or rewriting `main` history, or finalizing items marked *in review* (e.g. `database.md`). Ask first for those.
+- Standing approval covers: branch creation, commits, pushes, merging to `main` in the three repos, adding/fixing tests. It does **not** cover: deploying to or changing AWS resources, dropping/rewriting data, force-pushing or rewriting `main` history, or changing the licence or making the repository public/private. Ask first for those.
 - Merge only when build + all tests pass. Merge via the GitHub PR (merge commit, no squash) so history shows the branch. Delete merged branches.
 - Integration tests are required for any feature that touches the database, SQS or HTTP boundaries.
 - Agents record non-obvious choices in `decisions.md`; unknowns are asked, not guessed.

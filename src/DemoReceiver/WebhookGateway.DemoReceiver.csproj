@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <!-- Demo code is written to be read: plain ILogger calls instead of source-generated log methods. -->
+    <NoWarn>$(NoWarn);CA1848;CA1873</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
+  </ItemGroup>
+</Project>

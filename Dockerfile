@@ -1,6 +1,6 @@
 # One Dockerfile for every service. Build from the repo root:
 #   docker build --build-arg PROJECT=Ingest -t webhookgateway-ingest .
-# PROJECT is one of Ingest, FanOut, Dispatcher, ControlPlane, Migrator.
+# PROJECT is one of Ingest, FanOut, Dispatcher, ControlPlane, Migrator, DemoReceiver.
 ARG DOTNET_VERSION=10.0
 
 FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION} AS build
@@ -21,4 +21,5 @@ ENV ASPNETCORE_HTTP_PORTS=8080 \
     ENTRY_DLL=WebhookGateway.${PROJECT}.dll
 USER $APP_UID
 EXPOSE 8080
-ENTRYPOINT ["sh", "-c", "exec dotnet \"$ENTRY_DLL\" \"$@\"", "--"]
+# Compose generates secrets into /secrets/env (see docker-compose.yml); source them if present.
+ENTRYPOINT ["sh", "-c", "[ -f /secrets/env ] && . /secrets/env; exec dotnet \"$ENTRY_DLL\" \"$@\"", "--"]
