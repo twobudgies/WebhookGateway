@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Endpoint secrets and endpoint store
+- **Status:** PR open
+- **Outcome:** `ISecretProtector` (KMS envelope + local dev), `PostgresEndpointStore`, Dispatcher wiring, tests (unit, KMS on Moto, Postgres). D45.
+- **Resume from:** ControlPlane admin API (tenants, API keys, endpoints with secret generation, subscriptions) using EF Core (D43); then the portal read API.
+
 ### 2026-10-21 Config database (P1-2) - PR open, waiting for the owner's review
 - **Status:** done: approved by the owner and merged (D44)
 - **Outcome:** `db/migrations/0001..0002`, `src/Postgres` (MigrationRunner, PostgresApiKeyStore, PostgresSubscriptionStore), `src/Migrator`, wiring when `Postgres:ConnectionString` is set, `dev-up.sh` runs migrations, tests against local Postgres. D43 resolves the open review items.

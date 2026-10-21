@@ -10,4 +10,6 @@ internal static class ConfigIds
     public static EndpointId Endpoint(Guid id) => EndpointId.Parse($"ep_{id}");
 
     public static Guid Uuid(TenantId id) => Guid.Parse(id.Value["ten_".Length..]);
+
+    public static Guid Uuid(EndpointId id) => Guid.Parse(id.Value["ep_".Length..]);
 }
