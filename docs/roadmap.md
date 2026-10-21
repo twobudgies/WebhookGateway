@@ -55,6 +55,26 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P4-1 | Orchestrator (`webhookgateway-orchestrator`), per `orchestrator-spec.md`; owner approval of that spec needed first | L+ | risky | P0-3 |
 | P4-2 | Stage 2 swaps from `architecture.md` section 10, each when its trigger fires | per item | risky | P3-4 |
 
+## Phase L: launch readiness (added 2026-10-21; target first paying customer within 1 to 3 months)
+
+Context from the owner: no registered organization yet, product launched on the web, advertised to developers, customers expected from anywhere in the world. "Owner" items need the owner (legal, money, accounts); "agent" items are mine. Not legal or tax advice: confirm the owner items with an accountant.
+
+| ID | Work item | Who | Notes | Depends |
+|---|---|---|---|---|
+| L-L1 | **Register a business** (India: sole proprietorship, LLP or private limited; an accountant decides) and a business bank account. Needed by most payment providers, for AWS billing in the business name, and to sign customer terms | owner | a private limited or LLP also limits personal liability; ask about GST registration and the Letter of Undertaking for zero-rated export of services | |
+| L-L2 | **Payment route for a business with no company yet:** pick a provider that accepts individuals/sole proprietors (a merchant of record, D49/D50). Confirm KYC requirements and payout currency with the provider before building S-9 | owner + agent | | |
+| L-L3 | **Legal pages:** Terms of Service, Privacy Policy, Acceptable Use (no abusing the Dispatcher to attack third parties), refund policy, a Data Processing Addendum (customers in the EU/UK expect one), sub-processor list (AWS, payment provider, email) | owner + agent drafts | have a lawyer review; worldwide customers means GDPR applies in practice | |
+| L-L4 | **AWS account** in the business name, billing alarm and budget, MFA, no root use, separate staging and production (P3-3) | owner | needed before any deployment | |
+| L-L5 | **Domain, email (support@, security@), DNS**, TLS certificates | owner | | |
+| L-L6 | **Infrastructure code (CDK) and staging deployment**, then production | agent | P3-1..P3-3, with the owner's go-ahead | L-L4 |
+| L-L7 | **Operational safety:** CloudWatch alarms (queue age, DLQ depth, 5xx, delivery failure rate, Valkey/RDS health), a paging/notification channel to the owner, database backups with a tested restore, runbooks (what to do when a queue backs up, a key leaks, a customer asks for deletion) | agent | P3-5 | L-L6 |
+| L-L8 | **Load test on staging and a cost check against the bill estimate** before announcing | agent | LT items | L-L6 |
+| L-L9 | **Launch-lite developer site:** getting started, API reference, signature verification and sample code in the main languages, pricing page, status page (a subset of S-1..S-9, S-11) | agent | the full interactive site can follow after the first customers | |
+| L-L10 | **Abuse and fraud controls for a public sign-up:** per-tenant limits already exist; add outbound SSRF checks (done), signup verification and a kill switch to suspend a tenant fast (admin API suspend exists) | agent | S-10 | |
+| L-L11 | **First-customer process:** how an early customer is onboarded (operator creates the tenant through the admin API, sends the key, payment link), a feedback channel | owner + agent | works today without self-service signup | |
+
+Order: L-L1/L-L4/L-L5 (owner, start now because registration takes time) in parallel with L-L6 and L-L7 (agent), then L-L8, then L-L9. Self-service signup and checkout (S-9, S-10) can wait until the first customers are onboarded by hand.
+
 ## Phase 5: developer site, docs and purchase (added 2026-10-21, built last)
 
 Owner request: one website where developers learn the product and where customers buy a plan. Done **after** everything else works, but tracked now. Lives in its own repo (`webhookgateway-site`, to create) like the portal (D27); the OpenAPI document published from this repo is its source of truth for the API reference, so docs cannot drift from the code (rule D-3).

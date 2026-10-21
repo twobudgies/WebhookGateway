@@ -36,6 +36,13 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Launch readiness (Phase L)
+- **Status:** in progress (owner items waiting)
+- **Why:** owner plans to release on the web soon: no registered organization, worldwide audience, first customer in 1 to 3 months.
+- **Done now:** roadmap Phase L (L-L1..L-L11), D50, D49 updated.
+- **Waiting on the owner (long lead time, start now):** business registration and bank account (L-L1), AWS account in the business name (L-L4), domain and email (L-L5), legal pages review (L-L3), payment provider that accepts a new sole proprietor (L-L2).
+- **Agent next:** CDK/infrastructure code and staging (L-L6) as soon as the AWS account exists, alarms and backups (L-L7), load test (L-L8), launch-lite site (L-L9); secret rotation and `usage_monthly` flusher in the gaps.
+
 ### 2026-10-21 Developer site and purchase flow (planned, built last)
 - **Status:** planned (todo only), D47
 - **Why:** Owner wants a docs website (side menu, sub-menus, interactive, samples in C#/Java/PHP/Python/others, getting-started, security page) where customers also buy a plan; wants customers to trust the encryption.
