@@ -10,7 +10,7 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P0-2 | Solution scaffold in the monorepo: `src/{Contracts,Ingest,FanOut,Dispatcher,ControlPlane}`, `tests/`, `Directory.Build.props` (.NET 10, nullable, warnings as errors), `.editorconfig` | M | | |
 | P0-3 | `Makefile` with `verify` and `verify-fast`; GitHub Actions: build, test, format check | M | risky (CI) | P0-2 |
 | P0-4 | Local dev environment: docker-compose with PostgreSQL, LocalStack (SQS, DynamoDB, S3, KMS), Valkey; run script | M | | P0-2 |
-| P0-5 | Create repo `webhookgateway-portal` (empty) and OpenAPI generation setup in this repo | S | | P0-2 |
+| P0-5 | Create repo `webhookgateway-portal` (empty) and OpenAPI generation setup in this repo. **OpenAPI part DONE 2026-10-22 (D56): each API serves `/openapi/v1.json` and Swagger at `/docs`; publishing it as a release artifact is open.** | S | | P0-2 |
 
 ## Phase 1: core pipeline (local, tested against LocalStack and Testcontainers)
 

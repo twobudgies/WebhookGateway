@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
 using WebhookGateway.Ingest.Limits;
@@ -22,7 +24,35 @@ public static partial class EventsEndpoint
     public static void Map(IEndpointRouteBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);
-        app.MapPost("/v1/events", HandleAsync);
+        app.MapPost("/v1/events", HandleAsync)
+            .WithName("SendEvent")
+            .WithTags("Events")
+            .WithSummary("Send an event")
+            .WithDescription(
+                "Stores the event and answers 202 right away; delivery to the subscribed endpoints happens afterwards, signed and retried. "
+                + "202 means accepted and durably stored, not delivered. Send an Idempotency-Key and reuse it when you retry: "
+                + "a repeated key returns the original eventId and creates no second event. Retry 429 and 503 after the Retry-After seconds.")
+            .Accepts<SendEventRequest>("application/json")
+            .Produces<EventAccepted>(StatusCodes.Status202Accepted, "application/json")
+            .Produces<ApiErrorResponse>(StatusCodes.Status400BadRequest, "application/json")
+            .Produces<ApiErrorResponse>(StatusCodes.Status401Unauthorized, "application/json")
+            .Produces<ApiErrorResponse>(StatusCodes.Status403Forbidden, "application/json")
+            .Produces<ApiErrorResponse>(StatusCodes.Status413PayloadTooLarge, "application/json")
+            .Produces<ApiErrorResponse>(StatusCodes.Status429TooManyRequests, "application/json")
+            .Produces<ApiErrorResponse>(StatusCodes.Status503ServiceUnavailable, "application/json")
+            .AddOpenApiOperationTransformer((operation, _, _) =>
+            {
+                operation.Parameters ??= [];
+                operation.Parameters.Add(new OpenApiParameter
+                {
+                    Name = "Idempotency-Key",
+                    In = ParameterLocation.Header,
+                    Required = false,
+                    Description = "Up to 128 characters. Use one key per logical event and reuse it on retries; repeating it within the plan's window (1 hour on basic, 24 hours otherwise) returns the original eventId.",
+                    Schema = new OpenApiSchema { Type = JsonSchemaType.String, MaxLength = MaxIdempotencyKeyLength },
+                });
+                return Task.CompletedTask;
+            });
     }
 
     private static async Task<IResult> HandleAsync(

@@ -6,6 +6,9 @@
   <Folder Name="/src/Abstractions/">
     <Project Path="src/Abstractions/WebhookGateway.Abstractions.csproj" />
   </Folder>
+  <Folder Name="/src/ApiDocs/">
+    <Project Path="src/ApiDocs/WebhookGateway.ApiDocs.csproj" />
+  </Folder>
   <Folder Name="/src/Aws/">
     <Project Path="src/Aws/WebhookGateway.Aws.csproj" />
   </Folder>

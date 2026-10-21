@@ -246,4 +246,34 @@ public sealed class AdminApiTests
         Assert.Equal(HttpStatusCode.OK, suspend.StatusCode);
         Assert.Null(routingAfterSuspend);
     }
+
+    [Fact]
+    public async Task The_openapi_document_lists_every_admin_call_and_the_admin_key_scheme()
+    {
+        await using var env = await Env.StartAsync();
+        if (env is null)
+        {
+            return;
+        }
+
+        using var client = env.Client(key: null);
+
+        using var response = await client.GetAsync(new Uri("/openapi/v1.json", UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var paths = doc.RootElement.GetProperty("paths");
+        foreach (var path in new[]
+        {
+            "/admin/v1/tenants", "/admin/v1/tenants/{tenantId}", "/admin/v1/tenants/{tenantId}/api-keys",
+            "/admin/v1/tenants/{tenantId}/api-keys/{keyId}", "/admin/v1/tenants/{tenantId}/endpoints",
+            "/admin/v1/tenants/{tenantId}/endpoints/{endpointId}", "/admin/v1/tenants/{tenantId}/endpoints/{endpointId}/subscriptions",
+        })
+        {
+            Assert.True(paths.TryGetProperty(path, out _), $"missing {path}");
+        }
+
+        var scheme = doc.RootElement.GetProperty("components").GetProperty("securitySchemes").GetProperty("ApiKey");
+        Assert.Equal("X-Admin-Key", scheme.GetProperty("name").GetString());
+    }
 }
