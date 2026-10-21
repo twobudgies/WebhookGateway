@@ -1,0 +1,7 @@
+WebhookGateway
+Copyright 2026 The WebhookGateway authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+It includes or depends on third-party software under their own licenses, among them:
+.NET and ASP.NET Core (MIT), Npgsql and Npgsql.EntityFrameworkCore.PostgreSQL (PostgreSQL License),
+StackExchange.Redis (MIT), AWS SDK for .NET (Apache-2.0), xUnit (Apache-2.0).

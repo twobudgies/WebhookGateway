@@ -40,7 +40,8 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Status:** in progress
 - **Why:** owner decided to publish the repo (Apache-2.0) for adoption and reputation, running on Docker Compose; hosted business postponed (D52, D53). Owner answers: goal adoption, Apache-2.0, real self-host backends, public after clean-up + quick start.
 - **Plan:** O-1 hygiene and license first, then O-2..O-5 Postgres/self-host adapters, O-6 compose stack, O-7 quick start, then docs/SDKs/UI as in Phase O. Go public after O-1 and O-7.
-- **Resume from:** O-1 (LICENSE, README, history secret scan), then O-2 Postgres queue.
+- **O-1 done:** LICENSE (Apache-2.0), NOTICE, README, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT, issue/PR templates; full history scanned for secrets (none). Commit author email (the owner's Gmail) is public in history once the repo is public.
+- **Resume from:** O-2 Postgres queue adapters.
 
 ### 2026-10-21 Market reality check (D51)
 - **Status:** done (answer given to the owner); follow-ups L-L12, L-L13 on the roadmap
