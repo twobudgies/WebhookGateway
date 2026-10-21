@@ -1,0 +1,99 @@
+### Every API call in one file. Works in VS Code (extension "REST Client") and JetBrains IDEs (built in): click "Send Request" above a call.
+### 1. Start the stack:  docker compose up      2. Put your admin key below (docker compose exec controlplane sh -c '. /secrets/env; echo $ControlPlane__AdminKey')
+### 3. Run the calls from top to bottom; each one fills in the values the next one needs.
+
+@ingest = http://localhost:8080
+@admin = http://localhost:8081
+@adminKey = PASTE_YOUR_ADMIN_KEY_HERE
+
+### Health (no key needed)
+GET {{ingest}}/healthz
+
+###
+GET {{admin}}/healthz
+
+### 1. Create a customer (tenant)
+# @name createTenant
+POST {{admin}}/admin/v1/tenants
+X-Admin-Key: {{adminKey}}
+Content-Type: application/json
+
+{ "name": "Acme", "plan": "basic" }
+
+###
+@tenantId = {{createTenant.response.body.id}}
+
+### 2. Create an API key for the customer (shown only once)
+# @name createKey
+POST {{admin}}/admin/v1/tenants/{{tenantId}}/api-keys
+X-Admin-Key: {{adminKey}}
+
+###
+@apiKey = {{createKey.response.body.key}}
+
+### 3. Register an endpoint (the demo receiver) and subscribe it to order.created (the secret is shown only once)
+# @name createEndpoint
+POST {{admin}}/admin/v1/tenants/{{tenantId}}/endpoints
+X-Admin-Key: {{adminKey}}
+Content-Type: application/json
+
+{ "url": "http://receiver:8080/webhook", "eventTypes": ["order.created"] }
+
+###
+@endpointId = {{createEndpoint.response.body.id}}
+@secret = {{createEndpoint.response.body.secret}}
+
+### 4. Give the demo receiver the signing secret so it can verify signatures
+PUT http://localhost:9000/secret
+Content-Type: text/plain
+
+{{secret}}
+
+### 5. SEND AN EVENT (this is the call your application makes)
+POST {{ingest}}/v1/events
+Authorization: Bearer {{apiKey}}
+Content-Type: application/json
+Idempotency-Key: order-42-created
+
+{ "type": "order.created", "data": { "orderId": 42, "amount": 1999 } }
+
+### Same call again: you get the SAME eventId back (idempotency) and no second delivery
+
+### 6. See what the receiver got
+GET http://localhost:9000/received
+
+### List the customer's endpoints and their event types
+GET {{admin}}/admin/v1/tenants/{{tenantId}}/endpoints
+X-Admin-Key: {{adminKey}}
+
+### Change which events an endpoint receives
+PUT {{admin}}/admin/v1/tenants/{{tenantId}}/endpoints/{{endpointId}}/subscriptions
+X-Admin-Key: {{adminKey}}
+Content-Type: application/json
+
+{ "eventTypes": ["order.created", "invoice.paid"] }
+
+### Disable an endpoint (events are no longer routed to it)
+PATCH {{admin}}/admin/v1/tenants/{{tenantId}}/endpoints/{{endpointId}}
+X-Admin-Key: {{adminKey}}
+Content-Type: application/json
+
+{ "status": "disabled" }
+
+### List API keys (prefixes only; the full key was shown once)
+GET {{admin}}/admin/v1/tenants/{{tenantId}}/api-keys
+X-Admin-Key: {{adminKey}}
+
+### Suspend the customer (Ingest answers 403 tenant_suspended until set back to active)
+PATCH {{admin}}/admin/v1/tenants/{{tenantId}}
+X-Admin-Key: {{adminKey}}
+Content-Type: application/json
+
+{ "status": "suspended" }
+
+### What an error looks like: a wrong API key gives 401
+POST {{ingest}}/v1/events
+Authorization: Bearer wgk_live_wrong
+Content-Type: application/json
+
+{ "type": "order.created", "data": {} }

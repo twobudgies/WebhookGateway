@@ -93,6 +93,8 @@ curl -s -X POST http://localhost:8080/v1/events \
 # {"eventId":"evt_..."}   <- HTTP 202: accepted, delivery happens asynchronously
 ```
 
+Prefer clicking to typing? Open [`samples/api.http`](samples/api.http) in VS Code (extension "REST Client") or any JetBrains IDE: every call above, in order, with the values passed along automatically.
+
 **6. Receive it** at your endpoint and verify the signature, see [Receiving webhooks](#receiving-webhooks). More operator calls (list, disable, change subscriptions, revoke keys, suspend a customer): [`docs/admin-api.md`](docs/admin-api.md).
 
 ## Sending events (API)
