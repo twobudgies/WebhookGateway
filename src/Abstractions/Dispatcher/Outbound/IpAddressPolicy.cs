@@ -27,6 +27,31 @@ public static class IpAddressPolicy
         };
     }
 
+    /// <summary>
+    /// The relaxed policy for private installs (<c>AllowPrivateNetworks</c>): loopback, RFC 1918, CGNAT and unique-local
+    /// addresses are allowed because the operator delivers to their own services, but the cloud metadata/link-local range,
+    /// unspecified, multicast and reserved ranges stay blocked.
+    /// </summary>
+    public static bool IsBlockedAllowingPrivate(IPAddress address)
+    {
+        ArgumentNullException.ThrowIfNull(address);
+        if (address.IsIPv4MappedToIPv6)
+        {
+            address = address.MapToIPv4();
+        }
+
+        if (address.AddressFamily == AddressFamily.InterNetwork)
+        {
+            var b = address.GetAddressBytes();
+            return b[0] == 0 || (b[0] == 169 && b[1] == 254) || b[0] >= 224;
+        }
+
+        return address.AddressFamily != AddressFamily.InterNetworkV6
+            || address.Equals(IPAddress.IPv6None)
+            || address.IsIPv6LinkLocal
+            || address.IsIPv6Multicast;
+    }
+
     private static bool IsBlockedV4(byte[] b)
     {
         var (a, c) = (b[0], b[1]);

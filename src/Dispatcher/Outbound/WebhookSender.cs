@@ -29,7 +29,7 @@ public sealed class WebhookSender(HttpClient http, TimeProvider clock, IOptions<
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(message);
 
-        var urlProblem = EndpointUrlValidator.Validate(target.Url, _options.AllowInsecureHttp);
+        var urlProblem = EndpointUrlValidator.Validate(target.Url, _options.AllowInsecureHttp, _options.AllowPrivateNetworks);
         if (urlProblem is not null)
         {
             return new SendResult(SendOutcome.Failed, null, 0, "url_not_allowed");

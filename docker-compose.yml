@@ -1,0 +1,127 @@
+# WebhookGateway - run the whole product with one command, no AWS needed:
+#
+#     docker compose up
+#
+# Then follow the README quick start (or run ./scripts/quickstart.sh). First start builds the images (a few minutes);
+# data lives in the "pgdata" volume, generated secrets in the "secrets" volume. Every setting can be changed with an
+# environment variable or a .env file (see .env.example and docs/configuration.md).
+name: webhookgateway
+
+x-service: &service
+  restart: unless-stopped
+  depends_on:
+    init:
+      condition: service_completed_successfully
+    migrator:
+      condition: service_completed_successfully
+  volumes:
+    - secrets:/secrets:ro
+
+x-environment: &environment
+  Backend__Mode: Postgres
+  Postgres__ConnectionString: Host=postgres;Database=webhook;Username=webhook;Password=${POSTGRES_PASSWORD:-webhook}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: webhook
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-webhook}
+      POSTGRES_DB: webhook
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U webhook -d webhook"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  # Generates the admin key and the secret-encryption key once, into the "secrets" volume.
+  # Set WG_ADMIN_KEY (and WG_SECRET_KEY, base64 of 32 random bytes) in your environment to choose your own.
+  init:
+    image: alpine:3.20
+    environment:
+      WG_ADMIN_KEY: ${WG_ADMIN_KEY:-}
+      WG_SECRET_KEY: ${WG_SECRET_KEY:-}
+    volumes:
+      - secrets:/secrets
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        if [ -f /secrets/env ]; then echo "secrets already exist, keeping them"; exit 0; fi
+        admin="$${WG_ADMIN_KEY:-wgadmin_$$(head -c 24 /dev/urandom | base64 | tr -d '/+=\n')}"
+        key="$${WG_SECRET_KEY:-$$(head -c 32 /dev/urandom | base64)}"
+        printf 'export ControlPlane__AdminKey=%s\nexport Secrets__LocalKey=%s\n' "$$admin" "$$key" > /secrets/env
+        chmod 644 /secrets/env
+        echo "Generated your admin key: $$admin"
+        echo "(read it again any time with: docker compose exec controlplane sh -c '. /secrets/env; echo \$$ControlPlane__AdminKey')"
+
+  migrator:
+    build: { context: ., args: { PROJECT: Migrator } }
+    image: webhookgateway-migrator:local
+    restart: "no"
+    depends_on:
+      postgres: { condition: service_healthy }
+    command: ["Host=postgres;Database=webhook;Username=webhook;Password=${POSTGRES_PASSWORD:-webhook}", "/app/db/migrations"]
+
+  ingest:
+    <<: *service
+    build: { context: ., args: { PROJECT: Ingest } }
+    image: webhookgateway-ingest:local
+    environment:
+      <<: *environment
+      Ingest__Quota__Enforce: ${WG_ENFORCE_QUOTA:-false}
+    ports: ["${WG_INGEST_BIND:-0.0.0.0}:${WG_INGEST_PORT:-8080}:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /healthz HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \" 200 \" <&3'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  fanout:
+    <<: *service
+    build: { context: ., args: { PROJECT: FanOut } }
+    image: webhookgateway-fanout:local
+    environment:
+      <<: *environment
+
+  dispatcher:
+    <<: *service
+    build: { context: ., args: { PROJECT: Dispatcher } }
+    image: webhookgateway-dispatcher:local
+    environment:
+      <<: *environment
+      # Private install defaults: deliver to http:// and to services on your own network. Set both to false when
+      # customers you do not trust choose endpoint URLs (see docs/selfhost.md, "Security").
+      Dispatcher__Sender__AllowInsecureHttp: ${WG_ALLOW_INSECURE_HTTP:-true}
+      Dispatcher__Sender__AllowPrivateNetworks: ${WG_ALLOW_PRIVATE_NETWORKS:-true}
+
+  controlplane:
+    <<: *service
+    build: { context: ., args: { PROJECT: ControlPlane } }
+    image: webhookgateway-controlplane:local
+    environment:
+      <<: *environment
+      ControlPlane__AllowInsecureHttp: ${WG_ALLOW_INSECURE_HTTP:-true}
+      ControlPlane__AllowPrivateNetworks: ${WG_ALLOW_PRIVATE_NETWORKS:-true}
+    # Local only by default: the operator API must not be reachable from the network (see docs/selfhost.md).
+    ports: ["${WG_ADMIN_BIND:-127.0.0.1}:${WG_ADMIN_PORT:-8081}:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /healthz HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \" 200 \" <&3'"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  # A sample endpoint to receive and verify webhooks while you try things out. Remove it for real use.
+  receiver:
+    build: { context: ., args: { PROJECT: DemoReceiver } }
+    image: webhookgateway-demoreceiver:local
+    restart: unless-stopped
+    ports: ["127.0.0.1:${WG_RECEIVER_PORT:-9000}:8080"]
+
+volumes:
+  pgdata:
+  secrets:

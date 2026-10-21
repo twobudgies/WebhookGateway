@@ -20,6 +20,9 @@ public sealed class AdminOptions
 
     /// <summary>Allow http:// endpoint URLs (development only).</summary>
     public bool AllowInsecureHttp { get; init; }
+
+    /// <summary>Allow endpoint URLs on private networks (private installs only, see SenderOptions.AllowPrivateNetworks).</summary>
+    public bool AllowPrivateNetworks { get; init; }
 }
 
 /// <summary>
@@ -188,7 +191,7 @@ public static partial class AdminApi
             return NotFound("tenant");
         }
 
-        var problem = ValidateUrl(request.Url, options.Value.AllowInsecureHttp) ?? ValidateEventTypes(request.EventTypes);
+        var problem = ValidateUrl(request.Url, options.Value) ?? ValidateEventTypes(request.EventTypes);
         if (problem is not null)
         {
             return Error(StatusCodes.Status400BadRequest, "invalid_request", problem);
@@ -255,7 +258,7 @@ public static partial class AdminApi
 
         if (request.Url is not null)
         {
-            var problem = ValidateUrl(request.Url, options.Value.AllowInsecureHttp);
+            var problem = ValidateUrl(request.Url, options.Value);
             if (problem is not null)
             {
                 return Error(StatusCodes.Status400BadRequest, "invalid_request", problem);
@@ -312,10 +315,10 @@ public static partial class AdminApi
         return Results.Json(new { eventTypes = wanted.Order(StringComparer.Ordinal).ToList() });
     }
 
-    private static string? ValidateUrl(string? url, bool allowInsecureHttp) =>
+    private static string? ValidateUrl(string? url, AdminOptions options) =>
         url is null || !Uri.TryCreate(url, UriKind.Absolute, out var uri)
             ? "'url' is required and must be an absolute URL."
-            : EndpointUrlValidator.Validate(uri, allowInsecureHttp);
+            : EndpointUrlValidator.Validate(uri, options.AllowInsecureHttp, options.AllowPrivateNetworks);
 
     private static string? ValidateEventTypes(IReadOnlyList<string>? types) =>
         types is null || types.Count == 0 || types.Count > 100

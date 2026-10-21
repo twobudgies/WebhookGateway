@@ -1,7 +1,7 @@
 # Architecture
 
-Status: **APPROVED v4** (owner approved all 18 decisions, 2026-10-20; see D20-D28). Plan numbers in `tenancy-and-limits.md` and prices in `cost-model.md` stay provisional. Later changes go through `decisions.md`.
-Companion docs: `cost-model.md` (monthly bill and per-event cost), `data-plane.md` (queues, tables, S3 layout), `tenancy-and-limits.md` (plans and limits), `portal.md` (customer UI), `database.md` (PostgreSQL, in review), `contracts.md`.
+Status: **APPROVED v4** (owner approved all 18 decisions, 2026-10-20; see D20-D28). The project is now open source and self-hostable on PostgreSQL alone (D52-D54); this document describes the AWS scale-out design. Plan numbers in `tenancy-and-limits.md` and prices in `cost-model.md` stay provisional. Later changes go through `decisions.md`.
+Companion docs: `cost-model.md` (monthly bill and per-event cost), `data-plane.md` (queues, tables, S3 layout), `tenancy-and-limits.md` (plans and limits), `portal.md` (customer UI), `database.md` (PostgreSQL, final v1), `contracts.md`.
 
 Items marked **[DECIDE]** were collected in section 12 and are now decided as recommended there.
 
@@ -348,4 +348,4 @@ Rules kept from day one: a cell is self-contained; no region in code or data; gl
 
 Also required before code: a **load-test harness** (producers at up to 30,000 events/s against mock subscribers that are fast, slow and failing) so every number in section 10 becomes a measurement, and the **cost model** work item (verify prices for ap-south-1).
 
-`database.md` stays **in review**; its scope shrinks under this proposal (events, deliveries, attempts and outbox leave PostgreSQL); see `data-plane.md`.
+`database.md` is final (D44); its scope shrank under this design (events, deliveries, attempts and outbox are not in PostgreSQL in the AWS backend); see `data-plane.md`. Since D53 PostgreSQL can also host the data plane for self-hosted installs.

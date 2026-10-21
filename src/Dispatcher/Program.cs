@@ -20,7 +20,10 @@ builder.Services.AddSingleton(RetryPolicy.CreateDefault());
 builder.Services.AddSingleton(sp =>
 {
     var options = sp.GetRequiredService<IOptions<SenderOptions>>().Value;
-    var handler = SafeHttpHandler.Create(options.ConnectTimeout, options.MaxConnectionsPerServer);
+    var handler = SafeHttpHandler.Create(
+        options.ConnectTimeout,
+        options.MaxConnectionsPerServer,
+        options.AllowPrivateNetworks ? IpAddressPolicy.IsBlockedAllowingPrivate : null);
     return new HttpClient(handler, disposeHandler: true) { Timeout = Timeout.InfiniteTimeSpan };
 });
 builder.Services.AddSingleton<WebhookSender>();

@@ -13,4 +13,10 @@ public sealed class SenderOptions
     public bool AllowInsecureHttp { get; init; }
 
     public int MaxConnectionsPerServer { get; init; } = 100;
+
+    /// <summary>
+    /// Allow endpoints on private networks (RFC 1918, loopback, internal host names) for installs where the operator delivers to their
+    /// own services. The cloud metadata address stays blocked. Leave off for a multi-tenant service where customers choose URLs.
+    /// </summary>
+    public bool AllowPrivateNetworks { get; init; }
 }

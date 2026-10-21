@@ -42,7 +42,7 @@ Keep detail in `docs/` and link it here rather than growing this file.
 - `docs/tenancy-and-limits.md`: plans, accept/delivery/connection limits, quotas, tenant config (**approved structure, provisional numbers**)
 - `docs/portal.md`: customer UI spec (**approved**)
 - `docs/contracts.md`: shared message/event schemas, queue topics, APIs between components
-- `docs/database.md`: PostgreSQL design and migrations (**in review**)
+- `docs/database.md`: PostgreSQL design and migrations (**final v1**, D44)
 - `docs/workflow.md`: how work is done (agent-driven, GitHub)
 - `docs/orchestrator-spec.md`: **DRAFT v0.1** spec for the autonomous task-chain orchestrator (not yet approved; supersedes `workflow.md` only on approval)
 - `docs/flow-walkthrough.md`: **start here**: one event end to end, with code pointers and what is built vs. not (living; update with every task)

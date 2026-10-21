@@ -1,6 +1,6 @@
 # Database (PostgreSQL)
 
-Status: **Final v1 (approved by the owner 2026-10-21 on PR #34).** Earlier note: IN REVIEW. Updated for architecture v4 (2026-10-20). Draft implementation 2026-10-21 in `db/migrations/0001_initial_schema.sql` and `0002_seed_plans.sql` (PR open, NOT merged): the owner's review of that PR is the final review.** The open `(review)` choices were decided in D43. Once approved, change this line to `Final v1` and log it in `decisions.md`.
+Status: **Final v1** (approved 2026-10-21 on PR #34, D43, D44). Self-host runtime tables (queue, delivery state, rollups, archive, idempotency, usage counters) were added in `0003_selfhost_runtime.sql` for `Backend:Mode=Postgres` (D54); the AWS backend does not use them.
 
 ## Scope (changed by D21)
 
@@ -14,7 +14,7 @@ PostgreSQL holds **configuration only**: low-volume, relational data that is rea
 
 - One database, one schema `webhook`. **ControlPlane is the only writer** of configuration tables; Ingest, Fan-out and Dispatcher read through an in-memory cache (TTL 30 s, invalidated on change). `usage_monthly` is written by the usage flusher (Ingest).
 - **Schema and migrations live in this repo**: `db/migrations/NNNN_description.sql` (forward-only, plain SQL, expand then contract). Applied by a migration job in the deploy pipeline, never by app startup. Migrations are tagged `risky` for review (see `workflow.md`).
-- Data access: Npgsql (+ Dapper) *(review: vs EF Core)*. No ORM-generated schema.
+- Data access: Npgsql in the read-path stores; EF Core allowed in the ControlPlane (D43). No ORM-generated schema.
 
 ## Tables
 
