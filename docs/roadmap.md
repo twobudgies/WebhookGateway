@@ -63,14 +63,25 @@ No component logs yet. Sink decided: CloudWatch Logs, 14 days (D32, `logging.md`
 |---|---|---|---|---|
 | L-1 | Logging standard: structured JSON via `ILogger`, field names, levels, correlation id (W3C trace id), redaction rules, sampling of success logs; document in `docs/logging.md` | S | done: `docs/logging.md`, D32 | |
 | L-2 | Host setup shared by all services: JSON console formatter, enrich with service/version/environment, request logging middleware in Ingest and ControlPlane | M | done: `src/Hosting` `AddStructuredJsonConsole` in all four services (request logging is ASP.NET Core's built-in Information log) | L-1 |
-| L-3 | Backfill Ingest (P1-3): auth failures, validation rejects, rate-limit/quota rejects, publish failures (5xx), accepted (sampled) | M | | L-2 |
-| L-4 | Backfill Fan-out (P1-5): batch received, no subscription match, archive write failure, delivery publish failure, ack failure, poison/deserialize failure | M | | L-2 |
-| L-5 | Backfill Dispatcher (P1-6, P1-7): attempt outcome with status/latency/error class, SSRF block, retry scheduled, exhausted/expired, circuit breaker open/close, signing failure | M | | L-2 |
-| L-6 | Backfill Core rollups (P1-10): flush failures, dropped counters | S | | L-2 |
-| L-7 | Backfill SQS adapters (`src/Aws`): batch partial failure, receive/delete errors, queue URL resolution failure | S | | L-2 |
-| L-8 | Log hygiene tests: no secrets/payloads in log output | S | | L-3..L-5 |
+| L-3 | **done 2026-10-21** Backfill Ingest (P1-3): auth failures, validation rejects, rate-limit/quota rejects, publish failures (5xx), accepted (sampled) | M | | L-2 |
+| L-4 | **done** Backfill Fan-out (P1-5): batch received, no subscription match, archive write failure, delivery publish failure, ack failure, poison/deserialize failure | M | | L-2 |
+| L-5 | **done** (SSRF/blocked address appears as `error` on the failure line) Backfill Dispatcher (P1-6, P1-7): attempt outcome with status/latency/error class, SSRF block, retry scheduled, exhausted/expired, circuit breaker open/close, signing failure | M | | L-2 |
+| L-6 | Backfill Core rollups (P1-10): flush failures, dropped counters | S | **deferred:** the accumulator has no I/O; log when the flusher (P1-10) is built | | L-2 |
+| L-7 | **done** Backfill SQS adapters (`src/Aws`): batch partial failure, receive/delete errors, queue URL resolution failure | S | | L-2 |
+| L-8 | Log hygiene tests: no secrets/payloads in log output | S | **partly done:** Dispatcher failure line test (ids yes, payload no); still to add for Ingest and Fan-out | L-3..L-5 |
 | L-9 | Sink: ship logs to the chosen store, retention, a saved query set for debugging by eventId/deliveryId (cloud, needs owner go-ahead) | M | aws | P3-2, sink decision |
 | L-10 | Local dev: logs readable in the console with the same fields | S | | L-2 |
+
+## Cross-cutting: documentation upkeep (added 2026-10-21)
+
+Goal: the architect can understand the whole flow from `docs/` and ask for changes at any point.
+
+| ID | Item | Size | Notes | Depends on |
+|---|---|---|---|---|
+| D-1 | `docs/flow-walkthrough.md`: one event end to end, code pointers, built vs. not built | S | done 2026-10-21 | |
+| D-2 | **Definition of done for every item:** docs it affects are updated in the same PR (walkthrough "Built?" column, contracts, data-plane, logging, worklog) | rule | in `CLAUDE.md`; applies from now on | |
+| D-3 | **Docs audit after each merged task:** compare the changed code to `flow-walkthrough.md` and the other docs; if anything drifted, open a docs-only PR, verify against the code, merge when CI is green | rule | agent does this automatically | D-2 |
+| D-4 | Backfill: audit existing docs (`architecture`, `contracts`, `data-plane`, `tenancy-and-limits`, `portal`, `database`) against the implemented code and fix drift | M | | D-1 |
 
 ## Order and open owner items
 

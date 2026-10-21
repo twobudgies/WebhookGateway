@@ -30,8 +30,14 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Documentation upkeep (D-1..D-4)
+- **Status:** in progress
+- **Why:** Owner (architect) wants docs that explain the whole flow, updated with every task, tracked automatically.
+- **Done:** `docs/flow-walkthrough.md` (D-1); rule in `CLAUDE.md` (D-2, D-3); D-items in `roadmap.md`.
+- **Resume from:** D-4 audit of the older docs against the code; after every merged task run the D-3 audit (walkthrough "Built?" column first).
+
 ### 2026-10-21 Application logging gap
-- **Status:** in progress (sink decided: D32; L-1, L-2 done in PR; next L-3..L-7 backfill)
+- **Status:** in progress (sink decided: D32; L-1..L-5, L-7 done in the backfill PR; L-6 deferred to the rollup flusher; L-8 partly; L-9 cloud later)
 - **Why:** Owner noticed no component logs anything; needed to debug where code breaks.
 - **Done:** added L-1..L-10 to `docs/roadmap.md` (standard, host setup, backfill per finished component, hygiene tests, sink); rule added to `CLAUDE.md`. SQS adapters PR #21 merged.
 - **Proposed sink:** CloudWatch Logs (7-14 day retention, Logs Insights) plus S3 export for cheap long retention; no Elasticsearch/OpenSearch at launch (fixed cost well above the budget). Needs owner answer, then record as a decision.

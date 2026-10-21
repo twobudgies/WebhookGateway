@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Amazon.Runtime;
 using Amazon.SQS;
+using Microsoft.Extensions.Logging.Abstractions;
 using WebhookGateway.Aws.Sqs;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Ids;
@@ -62,7 +63,7 @@ public sealed class SqsAdapterTests
             JsonDocument.Parse("""{"a":1}""").RootElement.Clone());
 
         await new SqsEventPublisher(queues).PublishAsync(sent, CancellationToken.None);
-        var source = new SqsEventSource(queues, waitSeconds: 1);
+        var source = new SqsEventSource(queues, NullLogger<SqsEventSource>.Instance, waitSeconds: 1);
         var received = await source.ReceiveAsync(10, CancellationToken.None);
 
         var one = Assert.Single(received);

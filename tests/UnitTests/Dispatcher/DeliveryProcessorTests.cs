@@ -1,4 +1,6 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Time.Testing;
 using WebhookGateway.Contracts;
@@ -32,8 +34,8 @@ public sealed class DeliveryProcessorTests
         _endpoints.Set(_tenant, _target);
     }
 
-    private DeliveryProcessor Processor(double jitter = 1.0) =>
-        new(_endpoints, _payloads, _sender, _state, _retries, new RetryPolicy(() => jitter), _time, Options.Create(new DeliveryOptions()));
+    private DeliveryProcessor Processor(double jitter = 1.0, ILogger<DeliveryProcessor>? logger = null) =>
+        new(_endpoints, _payloads, _sender, _state, _retries, new RetryPolicy(() => jitter), _time, Options.Create(new DeliveryOptions()), logger ?? NullLogger<DeliveryProcessor>.Instance);
 
     private DeliveryMessage Message(int attempt = 1, DateTimeOffset? notBefore = null, JsonElement? payload = null, string? payloadRef = null)
     {
@@ -46,6 +48,21 @@ public sealed class DeliveryProcessorTests
     private static SendResult Ok() => new(SendOutcome.Succeeded, 200, 50, null);
 
     private static SendResult Retry(int status = 503, TimeSpan? retryAfter = null) => new(SendOutcome.Retry, status, 50, $"http_{status}", retryAfter);
+
+    [Fact]
+    public async Task A_failed_attempt_is_logged_with_ids_and_never_the_payload()
+    {
+        var log = new CapturingLogger<DeliveryProcessor>();
+        _sender.Enqueue(Retry(503));
+        var message = Message();
+
+        await Processor(logger: log).ProcessAsync(message, PlanTier.Basic, CancellationToken.None);
+
+        var entry = Assert.Single(log.Entries, e => e.Level == LogLevel.Warning);
+        Assert.Contains(message.DeliveryId.Value, entry.Message, StringComparison.Ordinal);
+        Assert.Contains("http_503", entry.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(message.Payload!.Value.GetRawText(), entry.Message, StringComparison.Ordinal);
+    }
 
     [Fact]
     public async Task A_successful_first_attempt_leaves_no_state_and_no_retry()

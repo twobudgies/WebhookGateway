@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Ids;
@@ -20,7 +21,7 @@ public sealed class FanOutProcessorTests
     private readonly FanOutProcessor _processor;
 
     public FanOutProcessorTests() =>
-        _processor = new FanOutProcessor(_subscriptions, _archive, _publisher, new FakeTimeProvider(Now));
+        _processor = new FanOutProcessor(_subscriptions, _archive, _publisher, new FakeTimeProvider(Now), NullLogger<FanOutProcessor>.Instance);
 
     private static EventMessage Event(TenantId tenant, string type = "order.created", string payloadJson = """{"id":1}""") =>
         new(
@@ -147,7 +148,7 @@ public sealed class FanOutProcessorTests
     public async Task A_failing_archive_prevents_any_publish()
     {
         var tenant = Tenant(PlanTier.Basic, (EndpointId.New(), "*"));
-        var processor = new FanOutProcessor(_subscriptions, new ThrowingArchive(), _publisher, new FakeTimeProvider(Now));
+        var processor = new FanOutProcessor(_subscriptions, new ThrowingArchive(), _publisher, new FakeTimeProvider(Now), NullLogger<FanOutProcessor>.Instance);
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await processor.ProcessAsync([Event(tenant)], CancellationToken.None));

@@ -22,7 +22,7 @@ public sealed class EventConsumerTests
     private EventConsumer CreateConsumer(IDeliveryPublisher? publisher = null) =>
         new(
             _source,
-            new FanOutProcessor(_subscriptions, new InMemoryEventArchive(), publisher ?? _publisher, new FakeTimeProvider()),
+            new FanOutProcessor(_subscriptions, new InMemoryEventArchive(), publisher ?? _publisher, new FakeTimeProvider(), NullLogger<FanOutProcessor>.Instance),
             NullLogger<EventConsumer>.Instance);
 
     private EventMessage AddEvent(TenantId tenant)

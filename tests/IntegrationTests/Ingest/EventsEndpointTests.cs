@@ -3,8 +3,11 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using WebhookGateway.Contracts.Ids;
+using WebhookGateway.Contracts.Messages;
 using WebhookGateway.Ingest.Api;
+using WebhookGateway.Ingest.Publishing;
 
 namespace WebhookGateway.IntegrationTests.Ingest;
 
@@ -170,5 +173,32 @@ public sealed class EventsEndpointTests : IClassFixture<IngestFactory>
 
         using var recovered = await client.PostAsync(EventsUri, Json(ValidBody));
         Assert.Equal(HttpStatusCode.Accepted, recovered.StatusCode);
+    }
+}
+
+public sealed class EventsEndpointPublishFailureTests : IClassFixture<IngestFactory>
+{
+    private readonly IngestFactory _factory;
+
+    public EventsEndpointPublishFailureTests(IngestFactory factory) => _factory = factory;
+
+    [Fact]
+    public async Task A_failing_queue_gives_503_and_not_an_accepted_event()
+    {
+        using var failing = _factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.AddSingleton<IEventPublisher, ThrowingPublisher>()));
+        using var client = failing.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IngestFactory.ActiveKey);
+        using var content = new StringContent("""{"type":"order.created","data":{"a":1}}""", Encoding.UTF8, "application/json");
+
+        using var response = await client.PostAsync(new Uri("/v1/events", UriKind.Relative), content);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
+    }
+
+    private sealed class ThrowingPublisher : IEventPublisher
+    {
+        public ValueTask PublishAsync(EventMessage message, CancellationToken cancellationToken) =>
+            throw new InvalidOperationException("queue down");
     }
 }
