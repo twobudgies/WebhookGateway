@@ -24,6 +24,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 
 ## Entries
 
+### 2026-10-21 Load and performance test plan (LT-1..LT-11)
+- **Status:** plan done (docs PR); implementation not started
+- **Why:** Owner wants end-to-end load/perf tests on the test env (generator and consumer on ECS or from the laptop, seeded tenants), and metrics saying the minimum production resources per workload, tracked in the todo items.
+- **Done:** `docs/load-testing.md`, roadmap section LT-1..LT-11 (P1-11, P3-3, P3-4, P3-5 updated), D35, CLAUDE.md index.
+- **Resume from:** LT-3/LT-4 (generator, mock subscriber) as the pipeline items land; LT-2 seed tool after ControlPlane (P2-1) or via a direct-to-DB seeder. Nothing in AWS starts without the owner's go-ahead.
+
 ### 2026-10-20 Architecture v4 approved; roadmap created
 - **Status:** done (approved 2026-10-20: owner approved all 18 decisions; PR #6 merged)
 - **Why / goal:** Owner wanted the architecture finalized (cost-first, SQS, scale path to 30k events/s, portal) before any code.

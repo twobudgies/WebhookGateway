@@ -26,7 +26,7 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P1-8 | Delivery pacing (send slots) and max backlog / backlog age | M | | P1-5, P1-4 |
 | P1-9 | Connection budgets: per-tenant/per-endpoint permits in Valkey with leases, per-task fair share | M | | P1-6 |
 | P1-10 | Rollups: in-memory counters and histograms flushed to DynamoDB `rollups`; result logs to S3 | M | | P1-6 |
-| P1-11 | Load-test harness (producers up to 30k events/s) and mock subscribers (fast, slow, failing) | L | | P1-3, P1-6 |
+| P1-11 | Load-test harness (producers up to 30k events/s) and mock subscribers (fast, slow, failing): split into LT-2..LT-4 below | L | | P1-3, P1-6 |
 
 ## Phase 2: control plane and portal
 
@@ -44,9 +44,9 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 |---|---|---|---|---|
 | P3-1 | CDK stacks: network (public subnets, no NAT), SQS, DynamoDB, S3, KMS, RDS, Valkey | L | risky, aws | P1-* |
 | P3-2 | CDK: ECS services (Ingest, worker, ControlPlane), ALB, autoscaling on CPU and queue age, alarms | L | risky, aws | P3-1 |
-| P3-3 | Test environment (minimum config, ~$35 to 40 per month) and deploy pipeline | M | risky, aws | P3-2 |
-| P3-4 | Load test on the test environment (short runs), replace capacity assumptions with measurements | M | aws | P1-11, P3-3 |
-| P3-5 | Production environment, backups restore drill, runbooks, dashboards | L | risky, aws | P3-4 |
+| P3-3 | Test environment (minimum config, ~$35 to 40 per month) and deploy pipeline; includes ECS task definitions for the load generator and mock subscriber (desired count 0 when idle) | M | risky, aws | P3-2, LT-3, LT-4 |
+| P3-4 | Load and performance tests on the test environment: run LT-6..LT-8, fix what they find, write `capacity.md` (LT-9) | L | aws | LT-1..LT-5, P3-3 |
+| P3-5 | Production environment sized from `capacity.md`, autoscaling and alarms from the measured numbers, backups restore drill, runbooks, dashboards | L | risky, aws | P3-4, LT-9 |
 
 ## Phase 4: autonomy and scale
 
@@ -71,6 +71,24 @@ No component logs yet. Sink decided: CloudWatch Logs, 14 days (D32, `logging.md`
 | L-8 | Log hygiene tests: no secrets/payloads in log output | S | **partly done:** Dispatcher failure line test (ids yes, payload no); still to add for Ingest and Fan-out | L-3..L-5 |
 | L-9 | Sink: ship logs to the chosen store, retention, a saved query set for debugging by eventId/deliveryId (cloud, needs owner go-ahead) | M | aws | P3-2, sink decision |
 | L-10 | Local dev: logs readable in the console with the same fields | S | | L-2 |
+
+## Cross-cutting: load and performance testing (added 2026-10-21)
+
+Plan, scenarios, metrics and the sizing output are in `docs/load-testing.md`. Short version: seed realistic tenants end to end, run the load generator and the mock subscribers as ECS tasks in the test environment (laptop only for smoke), measure every component, and turn the results into a "workload to minimum resources" table (`capacity.md`) that drives production sizing and autoscaling.
+
+| ID | Item | Size | Notes | Depends on |
+|---|---|---|---|---|
+| LT-1 | Plan: `docs/load-testing.md`, decision D35 | S | done 2026-10-21 | |
+| LT-2 | Seed tool: creates tenants, endpoints, subscriptions, API keys from a profile via the ControlPlane API (plan mix, fan-out, mock-behavior mix, deterministic seed, tear-down) | M | run locally first, same tool in the test env | P2-1 (until then, a direct-to-DB seeder behind the same profile) |
+| LT-3 | Load generator `tools/LoadGenerator`: open-loop constant-rate, step/ramp/spike profiles, event size and type mix, idempotency duplicates, metrics output, container image | M | decide .NET vs k6 in this item | P1-3 |
+| LT-4 | Mock subscriber service: fast / slow / failing / timeout / 429 per endpoint, counts received deliveries per event id (lost and duplicate check), container image | M | | P1-6 |
+| LT-5 | Metrics emission from the services (CloudWatch EMF or equivalent): per-component rates, latencies, queue ages, connection counts, limits hit; same names locally and in the cloud | M | pair with L-9 sink; no per-event metric cost surprises, aggregate in process | L-2, P1-10 |
+| LT-6 | Local functional run: S1 end to end against Moto/Docker with seed + generator + mock subscribers; fix defects found (no capacity numbers) | M | | LT-2..LT-4 |
+| LT-7 | Test-environment run set: S1, S2 (step load to the knee), S3 soak, S4 spike | L | aws; needs owner go-ahead for spend | P3-3, LT-6, LT-5 |
+| LT-8 | Test-environment behavior runs: S5 slow consumers, S6 failing consumers, S7 noisy tenant, S8 large payloads, S9 failure injection, S10 drain; run report script (`docs/load-test-runs/`) | L | aws | LT-7 |
+| LT-9 | **Capacity table and metrics:** `docs/capacity.md` with per-task sustainable rates, knees, connection limits, Valkey/DynamoDB/RDS numbers, cost per million events, and the sizing table (workload to minimum resources, 30% headroom, N+1 across two AZs); update `architecture.md` section 8/11 and `cost-model.md` with measured values | M | the standing reference for production sizing | LT-7, LT-8 |
+| LT-10 | Turn capacity numbers into production settings: autoscaling targets (CPU, queue age), min/max tasks, alarm thresholds, platform-wide accept cap; re-run S2/S4 against them | M | risky (infra), aws | LT-9, P3-2 |
+| LT-11 | Re-run policy: after any change to the hot path (Ingest, Fan-out, Dispatcher, limiter, adapters) or each quarter, rerun S2 and compare to the last run in `docs/load-test-runs/`; flag regressions above 15% | rule | | LT-9 |
 
 ## Cross-cutting: documentation upkeep (added 2026-10-21)
 
