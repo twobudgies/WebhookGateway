@@ -30,6 +30,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 DynamoDB adapters
+- **Status:** PR open
+- **Outcome:** `DynamoDbDeliveryStateStore` (gsi1/2/3 attributes, TTL) and `DynamoDbRollupWriter` (atomic ADD) in `src/Aws/DynamoDb`, with logs and Moto tests. Decision D34 holds the reasons.
+- **Resume from:** SQS delivery source + worker loop for Dispatcher, retry scheduler loop over gsi3, rollup flush loop, then host wiring (DI) with config for AWS vs in-memory, then Valkey (P1-4).
+
 ### 2026-10-21 S3 archive adapter
 - **Status:** PR open
 - **Outcome:** `S3EventArchive` (gzip JSONL per batch, KMS optional, `payloadRef` `s3://bucket/key#line`) and `S3PayloadResolver` (Dispatcher side) in `src/Aws/S3`, with logs (no payloads) and Moto tests. D33 records gzip instead of zstd. `data-plane.md` and the walkthrough updated.
