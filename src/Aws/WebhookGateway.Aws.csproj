@@ -3,6 +3,7 @@
     <RootNamespace>WebhookGateway.Aws</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="AWSSDK.SQS" />
     <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
     <ProjectReference Include="..\Ingest\WebhookGateway.Ingest.csproj" />

@@ -70,7 +70,7 @@ Workers keep counters in memory per key and flush every 10 seconds with atomic `
 
 ## 5. S3 layout
 
-- `archive/region=<r>/date=<d>/hour=<h>/<workerId>-<seq>.jsonl.zst`: event batches written by Fan-out, encrypted with KMS. One PUT per thousands of events.
+- `archive/region=<r>/date=<d>/hour=<h>/<workerId>-<seq>.jsonl.gz`: event batches written by Fan-out (gzip JSON Lines, one `EventMessage` per line), encrypted with KMS. One PUT per batch. A `payloadRef` is `s3://<bucket>/<key>#<zero-based line>` (D33).
 - `results/tenant=<id>/date=<d>/<workerId>-<minute>.jsonl.gz`: result logs; the Athena workgroup is queried only through ControlPlane with the tenant id fixed server-side.
 - Lifecycle rules enforce retention per prefix; tenant deletion removes by prefix.
 
