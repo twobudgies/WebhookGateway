@@ -30,22 +30,26 @@ public static partial class EventsEndpoint
         IRateLimiter limiter,
         IEventPublisher publisher,
         TimeProvider clock,
+        ILogger<IngestApiMarker> logger,
         CancellationToken cancellationToken)
     {
         var apiKey = ReadBearerToken(http.Request);
         if (apiKey is null)
         {
+            LogAuthRejected(logger, "missing_or_malformed_header");
             return ApiErrors.Create(StatusCodes.Status401Unauthorized, "unauthorized", "Missing or malformed Authorization header.");
         }
 
         var tenant = await keys.FindByKeyHashAsync(ApiKeyHasher.Hash(apiKey), cancellationToken).ConfigureAwait(false);
         if (tenant is null)
         {
+            LogAuthRejected(logger, "unknown_key");
             return ApiErrors.Create(StatusCodes.Status401Unauthorized, "unauthorized", "Invalid API key.");
         }
 
         if (tenant.Status != TenantStatus.Active)
         {
+            LogTenantNotActive(logger, tenant.TenantId.Value, tenant.Status);
             return ApiErrors.Create(StatusCodes.Status403Forbidden, "tenant_suspended", "This account is not active.");
         }
 
@@ -53,6 +57,7 @@ public static partial class EventsEndpoint
         SetRateLimitHeaders(http.Response, rate);
         if (!rate.Allowed)
         {
+            LogRateLimited(logger, tenant.TenantId.Value, rate.Limit);
             return ApiErrors.Create(
                 StatusCodes.Status429TooManyRequests,
                 "rate_limited",
@@ -62,18 +67,21 @@ public static partial class EventsEndpoint
         var idempotencyKey = http.Request.Headers["Idempotency-Key"].ToString();
         if (idempotencyKey.Length > MaxIdempotencyKeyLength)
         {
+            LogRejected(logger, tenant.TenantId.Value, "idempotency_key_too_long");
             return ApiErrors.Create(StatusCodes.Status400BadRequest, "invalid_request", $"Idempotency-Key is longer than {MaxIdempotencyKeyLength} characters.");
         }
 
         var body = await ReadBodyAsync(http.Request, tenant.Limits.MaxPayloadBytes, cancellationToken).ConfigureAwait(false);
         if (body is null)
         {
+            LogRejected(logger, tenant.TenantId.Value, "payload_too_large");
             return ApiErrors.Create(StatusCodes.Status413PayloadTooLarge, "payload_too_large", $"Request body exceeds {tenant.Limits.MaxPayloadBytes} bytes.");
         }
 
         var parsed = Parse(body);
         if (parsed.Error is not null)
         {
+            LogRejected(logger, tenant.TenantId.Value, "invalid_body");
             return ApiErrors.Create(StatusCodes.Status400BadRequest, "invalid_request", parsed.Error);
         }
 
@@ -88,8 +96,17 @@ public static partial class EventsEndpoint
             idempotencyKey.Length == 0 ? null : idempotencyKey,
             parsed.Data);
 
-        await publisher.PublishAsync(message, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await publisher.PublishAsync(message, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogPublishFailed(logger, ex, tenant.TenantId.Value, message.EventId.Value);
+            return ApiErrors.Create(StatusCodes.Status503ServiceUnavailable, "unavailable", "The event could not be stored. Retry the request.");
+        }
 
+        LogAccepted(logger, tenant.TenantId.Value, message.EventId.Value, message.Type);
         return Results.Json(new { eventId = message.EventId.Value }, statusCode: StatusCodes.Status202Accepted);
     }
 
@@ -192,6 +209,24 @@ public static partial class EventsEndpoint
             return new ParsedEvent(type, occurredAt, data.Clone(), null);
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Request rejected: authentication failed ({Reason})")]
+    private static partial void LogAuthRejected(ILogger logger, string reason);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Request rejected: tenant {TenantId} is {Status}")]
+    private static partial void LogTenantNotActive(ILogger logger, string tenantId, TenantStatus status);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Request rejected: tenant {TenantId} exceeded {Limit} events/second")]
+    private static partial void LogRateLimited(ILogger logger, string tenantId, int limit);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Request rejected for tenant {TenantId}: {Reason}")]
+    private static partial void LogRejected(ILogger logger, string tenantId, string reason);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Event {EventId} of tenant {TenantId} could not be published; responding 503")]
+    private static partial void LogPublishFailed(ILogger logger, Exception exception, string tenantId, string eventId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Accepted event {EventId} ({EventType}) of tenant {TenantId}")]
+    private static partial void LogAccepted(ILogger logger, string tenantId, string eventId, string eventType);
 
     [GeneratedRegex("^[A-Za-z0-9._:-]+$", RegexOptions.CultureInvariant, matchTimeoutMilliseconds: 100)]
     private static partial Regex EventTypePattern();

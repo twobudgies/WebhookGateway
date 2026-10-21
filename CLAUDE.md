@@ -45,6 +45,7 @@ Keep detail in `docs/` and link it here rather than growing this file.
 - `docs/database.md`: PostgreSQL design and migrations (**in review**)
 - `docs/workflow.md`: how work is done (agent-driven, GitHub)
 - `docs/orchestrator-spec.md`: **DRAFT v0.1** spec for the autonomous task-chain orchestrator (not yet approved; supersedes `workflow.md` only on approval)
+- `docs/flow-walkthrough.md`: **start here**: one event end to end, with code pointers and what is built vs. not (living; update with every task)
 - `docs/glossary.md`: domain terms
 - `docs/decisions.md`: decision log (what, why, date)
 - `docs/worklog.md`: agent work log (why, end goal, status, resume point); **read first after any interruption, update as you work**
@@ -53,6 +54,7 @@ Fill these in as the design firms up. Until then, treat missing information as u
 
 ## Rules for maintaining this repo
 
+- **Docs stay in step with the code.** Every work item updates the docs it affects (`docs/flow-walkthrough.md` always checked; plus architecture, contracts, data-plane, tenancy, logging, roadmap, worklog as relevant) **in the same PR**. If a doc turns out to be stale later, open a docs-only PR, check it against the code, and merge it once `make verify` and CI pass. Tracked as D-1..D-4 in `docs/roadmap.md`.
 - **Every work item includes its application logging** (structured, no secrets or payload bodies, ids as fields). Items finished before 2026-10-21 are backfilled under L-3..L-7 in `docs/roadmap.md`.
 - Anything used by more than one component (schemas, naming, retry/audit semantics) is defined **here first**, then implemented in the components. Contract change plus consumers can ship in one PR.
 - If a change in one component alters a contract, update `docs/contracts.md` in the same piece of work.

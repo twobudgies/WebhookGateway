@@ -36,7 +36,7 @@ public enum DeliveryAction
 /// Only non-success paths write state. Any exception (storage or queue error) propagates so the message is not deleted
 /// and SQS redelivers it, which is safe because everything here is idempotent.
 /// </summary>
-public sealed class DeliveryProcessor(
+public sealed partial class DeliveryProcessor(
     IEndpointStore endpoints,
     IPayloadResolver payloads,
     IWebhookSender sender,
@@ -44,7 +44,8 @@ public sealed class DeliveryProcessor(
     IRetryPublisher retries,
     RetryPolicy retryPolicy,
     TimeProvider clock,
-    IOptions<DeliveryOptions> options)
+    IOptions<DeliveryOptions> options,
+    ILogger<DeliveryProcessor> logger)
 {
     private readonly DeliveryOptions _options = options.Value;
 
@@ -56,6 +57,7 @@ public sealed class DeliveryProcessor(
         var existing = await state.GetAsync(message.TenantId, message.DeliveryId, cancellationToken).ConfigureAwait(false);
         if (existing is { IsFinal: true })
         {
+            LogSkipped(logger, message.TenantId.Value, message.DeliveryId.Value);
             return DeliveryAction.Skipped;
         }
 
@@ -86,9 +88,11 @@ public sealed class DeliveryProcessor(
             case SendOutcome.Succeeded:
                 if (message.Attempt > 1)
                 {
+                    LogDeliveredAfterRetry(logger, message.TenantId.Value, message.DeliveryId.Value, message.EndpointId.Value, message.Attempt);
                     await state.DeleteAsync(message.TenantId, message.DeliveryId, cancellationToken).ConfigureAwait(false);
                 }
 
+                LogDelivered(logger, message.TenantId.Value, message.DeliveryId.Value, message.EndpointId.Value, message.Attempt, result.StatusCode);
                 return DeliveryAction.Delivered;
 
             case SendOutcome.Failed:
@@ -141,8 +145,20 @@ public sealed class DeliveryProcessor(
         int? statusCode,
         string? error,
         DateTimeOffset now,
-        CancellationToken cancellationToken) =>
-        state.PutAsync(
+        CancellationToken cancellationToken)
+    {
+        LogNotDelivered(
+            logger,
+            message.TenantId.Value,
+            message.DeliveryId.Value,
+            message.EventId.Value,
+            message.EndpointId.Value,
+            message.Attempt,
+            status,
+            statusCode,
+            error,
+            nextAttemptAt);
+        return state.PutAsync(
             new DeliveryStateRecord(
                 message.TenantId,
                 message.DeliveryId,
@@ -160,4 +176,27 @@ public sealed class DeliveryProcessor(
                 message.CreatedAt,
                 now),
             cancellationToken);
+    }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Delivery {DeliveryId} of tenant {TenantId} to endpoint {EndpointId} succeeded on attempt {Attempt} (HTTP {StatusCode})")]
+    private static partial void LogDelivered(ILogger logger, string tenantId, string deliveryId, string endpointId, int attempt, int? statusCode);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Delivery {DeliveryId} of tenant {TenantId} to endpoint {EndpointId} succeeded after retry, attempt {Attempt}")]
+    private static partial void LogDeliveredAfterRetry(ILogger logger, string tenantId, string deliveryId, string endpointId, int attempt);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Delivery {DeliveryId} of tenant {TenantId} already finished; skipping redelivered message")]
+    private static partial void LogSkipped(ILogger logger, string tenantId, string deliveryId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Delivery {DeliveryId} (event {EventId}, tenant {TenantId}, endpoint {EndpointId}) attempt {Attempt} ended as {Status}: HTTP {StatusCode}, error {Error}, next attempt {NextAttemptAt}")]
+    private static partial void LogNotDelivered(
+        ILogger logger,
+        string tenantId,
+        string deliveryId,
+        string eventId,
+        string endpointId,
+        int attempt,
+        DeliveryStatus status,
+        int? statusCode,
+        string? error,
+        DateTimeOffset? nextAttemptAt);
 }
