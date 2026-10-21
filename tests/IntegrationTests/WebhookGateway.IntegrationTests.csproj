@@ -10,6 +10,7 @@
     <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
+    <ProjectReference Include="..\..\src\Aws\WebhookGateway.Aws.csproj" />
     <ProjectReference Include="..\..\src\Ingest\WebhookGateway.Ingest.csproj" />
     <ProjectReference Include="..\..\src\ControlPlane\WebhookGateway.ControlPlane.csproj" />
   </ItemGroup>

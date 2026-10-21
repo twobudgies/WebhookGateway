@@ -30,6 +30,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 SQS adapters (src/Aws)
+- **Status:** PR open
+- **Why:** Roadmap: replace in-memory ports with AWS-backed ones.
+- **Outcome:** new `WebhookGateway.Aws` project: `SqsEventPublisher` (Ingest), `SqsEventSource` (Fan-out), `SqsDeliveryPublisher` (Fan-out first attempt + Dispatcher retry with `DelaySeconds`, clamped 0-15 min). Integration tests run against Moto and skip when it is not up. Gotcha: AWSSDK v4 returns null `Messages` on an empty receive.
+- **Resume from:** S3 `IEventArchive`, DynamoDB `IDeliveryStateStore` + rollups, SQS delivery source for Dispatcher, then host wiring (DI) and P1-4 Valkey.
+
 ### 2026-10-21 Local dev environment verified (P0-4)
 - **Status:** PR open
 - **Why:** Docker unblocked; `feature/local-dev-environment` was unverified.
