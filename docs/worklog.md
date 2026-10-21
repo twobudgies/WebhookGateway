@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 ControlPlane admin API (P2-1)
+- **Status:** PR open
+- **Outcome:** `/admin/v1` (tenants, API keys, endpoints, subscriptions), EF Core on the existing tables, admin key auth, plan caps, SSRF URL check, one-time secret/key display, logs for every change; `docs/admin-api.md`; 8 integration tests on real Postgres. D46.
+- **Now possible end to end (locally):** create tenant + key + endpoint through the API, POST an event to Ingest, Fan-out routes it, Dispatcher delivers it (Moto + Postgres + Valkey).
+- **Resume from:** an end-to-end smoke script/test across the three services; then deployment prep (Dockerfiles, CDK; needs the owner's AWS go-ahead); portal read API (P2-2).
+
 ### 2026-10-21 Endpoint secrets and endpoint store
 - **Status:** PR open
 - **Outcome:** `ISecretProtector` (KMS envelope + local dev), `PostgresEndpointStore`, Dispatcher wiring, tests (unit, KMS on Moto, Postgres). D45.

@@ -12,6 +12,7 @@
     <PackageVersion Include="AWSSDK.S3" Version="4.0.104.5" />
     <PackageVersion Include="AWSSDK.SQS" Version="4.0.100.19" />
     <PackageVersion Include="Npgsql" Version="10.0.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageVersion Include="StackExchange.Redis" Version="2.8.58" />
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />

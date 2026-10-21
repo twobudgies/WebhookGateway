@@ -35,3 +35,7 @@ To share limits across Ingest tasks (rate limit, idempotency keys, monthly count
 ## Config database
 
 `./scripts/dev-up.sh` runs the migrator (`src/Migrator`) against the local PostgreSQL and seeds the plans. To make Ingest and Fan-out read tenants, keys and subscriptions from it: `Postgres__ConnectionString="Host=localhost;Database=webhook;Username=webhook;Password=webhook"`. Until the ControlPlane exists, create a tenant, key hash (`ApiKeyHasher`: SHA-256 hex), endpoint and subscription with SQL (see `tests/IntegrationTests/Aws/PostgresConfigTests.cs` for working inserts).
+
+## ControlPlane admin API
+
+`Postgres__ConnectionString=... ControlPlane__AdminKey=dev-admin Secrets__LocalKey=$(openssl rand -base64 32) dotnet run --project src/ControlPlane -c Release`, then see `docs/admin-api.md` for the calls. `ControlPlane__AllowInsecureHttp=true` allows `http://` endpoint URLs for local tests.
