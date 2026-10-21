@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WebhookGateway.ControlPlane.Data;
@@ -34,18 +35,48 @@ public static partial class AdminApi
     public static void Map(IEndpointRouteBuilder app)
     {
         ArgumentNullException.ThrowIfNull(app);
-        var admin = app.MapGroup("/admin/v1").AddEndpointFilter(RequireAdminKeyAsync);
+        var admin = app.MapGroup("/admin/v1")
+            .AddEndpointFilter(RequireAdminKeyAsync)
+            .WithMetadata(
+                new ProducesResponseTypeAttribute<ErrorBody>(StatusCodes.Status401Unauthorized, "application/json"),
+                new ProducesResponseTypeAttribute<ErrorBody>(StatusCodes.Status503ServiceUnavailable, "application/json"));
 
-        admin.MapPost("/tenants", CreateTenantAsync);
-        admin.MapGet("/tenants/{tenantId}", GetTenantAsync);
-        admin.MapPatch("/tenants/{tenantId}", UpdateTenantAsync);
-        admin.MapPost("/tenants/{tenantId}/api-keys", CreateApiKeyAsync);
-        admin.MapGet("/tenants/{tenantId}/api-keys", ListApiKeysAsync);
-        admin.MapDelete("/tenants/{tenantId}/api-keys/{keyId}", RevokeApiKeyAsync);
-        admin.MapPost("/tenants/{tenantId}/endpoints", CreateEndpointAsync);
-        admin.MapGet("/tenants/{tenantId}/endpoints", ListEndpointsAsync);
-        admin.MapPatch("/tenants/{tenantId}/endpoints/{endpointId}", UpdateEndpointAsync);
-        admin.MapPut("/tenants/{tenantId}/endpoints/{endpointId}/subscriptions", SetSubscriptionsAsync);
+        admin.MapPost("/tenants", CreateTenantAsync)
+            .WithTags("Tenants").WithName("CreateTenant").WithSummary("Create a customer (tenant)")
+            .WithDescription("Plan is basic, advanced or premium. Plans differ in rate limit, monthly quota, endpoint count and retry window.")
+            .Produces<TenantView>(StatusCodes.Status201Created).Produces<ErrorBody>(StatusCodes.Status400BadRequest);
+        admin.MapGet("/tenants/{tenantId}", GetTenantAsync)
+            .WithTags("Tenants").WithName("GetTenant").WithSummary("Read a customer")
+            .Produces<TenantView>().Produces<ErrorBody>(StatusCodes.Status404NotFound);
+        admin.MapPatch("/tenants/{tenantId}", UpdateTenantAsync)
+            .WithTags("Tenants").WithName("UpdateTenant").WithSummary("Change a customer's status or plan")
+            .WithDescription("status: active, suspended (Ingest answers 403 and deliveries pause) or closed. A plan change is refused (409) if the customer has more endpoints than the new plan allows.")
+            .Produces<TenantView>().Produces<ErrorBody>(StatusCodes.Status400BadRequest).Produces<ErrorBody>(StatusCodes.Status404NotFound).Produces<ErrorBody>(StatusCodes.Status409Conflict);
+        admin.MapPost("/tenants/{tenantId}/api-keys", CreateApiKeyAsync)
+            .WithTags("API keys").WithName("CreateApiKey").WithSummary("Create an API key for a customer")
+            .WithDescription("The full key is in this response only. Only a hash and a 12-character prefix are stored.")
+            .Produces<ApiKeyCreated>(StatusCodes.Status201Created).Produces<ErrorBody>(StatusCodes.Status404NotFound);
+        admin.MapGet("/tenants/{tenantId}/api-keys", ListApiKeysAsync)
+            .WithTags("API keys").WithName("ListApiKeys").WithSummary("List a customer's API keys (prefixes only)")
+            .Produces<ApiKeyInfo[]>();
+        admin.MapDelete("/tenants/{tenantId}/api-keys/{keyId}", RevokeApiKeyAsync)
+            .WithTags("API keys").WithName("RevokeApiKey").WithSummary("Revoke an API key")
+            .Produces(StatusCodes.Status204NoContent).Produces<ErrorBody>(StatusCodes.Status404NotFound);
+        admin.MapPost("/tenants/{tenantId}/endpoints", CreateEndpointAsync)
+            .WithTags("Endpoints").WithName("CreateEndpoint").WithSummary("Register an endpoint and its event types")
+            .WithDescription("The URL must be https (http and private networks only if the install allows them) and must pass the SSRF checks. eventTypes may contain * for all events. The signing secret is in this response only.")
+            .Produces<EndpointCreated>(StatusCodes.Status201Created).Produces<ErrorBody>(StatusCodes.Status400BadRequest)
+            .Produces<ErrorBody>(StatusCodes.Status404NotFound).Produces<ErrorBody>(StatusCodes.Status409Conflict);
+        admin.MapGet("/tenants/{tenantId}/endpoints", ListEndpointsAsync)
+            .WithTags("Endpoints").WithName("ListEndpoints").WithSummary("List a customer's endpoints with their event types")
+            .Produces<EndpointInfo[]>();
+        admin.MapPatch("/tenants/{tenantId}/endpoints/{endpointId}", UpdateEndpointAsync)
+            .WithTags("Endpoints").WithName("UpdateEndpoint").WithSummary("Change an endpoint's URL or enable/disable it")
+            .WithDescription("status: active or disabled. A disabled endpoint receives no new deliveries.")
+            .Produces<EndpointStatusView>().Produces<ErrorBody>(StatusCodes.Status400BadRequest).Produces<ErrorBody>(StatusCodes.Status404NotFound);
+        admin.MapPut("/tenants/{tenantId}/endpoints/{endpointId}/subscriptions", SetSubscriptionsAsync)
+            .WithTags("Endpoints").WithName("SetSubscriptions").WithSummary("Replace the event types an endpoint receives")
+            .Produces<SubscriptionsView>().Produces<ErrorBody>(StatusCodes.Status400BadRequest).Produces<ErrorBody>(StatusCodes.Status404NotFound);
     }
 
     private static async ValueTask<object?> RequireAdminKeyAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
@@ -374,3 +405,22 @@ public sealed record CreateEndpoint(string? Url, IReadOnlyList<string>? EventTyp
 public sealed record UpdateEndpoint(string? Url, string? Status);
 
 public sealed record SetSubscriptions(IReadOnlyList<string>? EventTypes);
+
+/// <summary>Response shapes, used for the OpenAPI document and the Swagger page.</summary>
+public sealed record ErrorBody(ErrorDetail Error);
+
+public sealed record ErrorDetail(string Code, string Message);
+
+public sealed record TenantView(Guid Id, string Name, string Status, string Plan, DateTimeOffset CreatedAt);
+
+public sealed record ApiKeyCreated(Guid Id, string Prefix, string Key, string Note);
+
+public sealed record ApiKeyInfo(Guid Id, string Prefix, DateTimeOffset CreatedAt, DateTimeOffset? RevokedAt);
+
+public sealed record EndpointCreated(Guid Id, string Url, string Status, IReadOnlyList<string> EventTypes, string Secret, string Note);
+
+public sealed record EndpointInfo(Guid Id, string Url, string Status, IReadOnlyList<string> EventTypes);
+
+public sealed record EndpointStatusView(Guid Id, string Url, string Status);
+
+public sealed record SubscriptionsView(IReadOnlyList<string> EventTypes);

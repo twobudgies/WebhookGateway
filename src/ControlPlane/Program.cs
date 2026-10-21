@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using WebhookGateway.ApiDocs;
 using WebhookGateway.Aws;
 using WebhookGateway.ControlPlane.Api;
 using WebhookGateway.ControlPlane.Data;
@@ -18,12 +19,25 @@ if (adminEnabled)
     builder.Services.AddSecretProtection(builder.Configuration);
 }
 
+if (builder.Configuration.DocsEnabled())
+{
+    builder.Services.AddApiDocs(
+        "WebhookGateway operator API",
+        "Create customers (tenants), their API keys, endpoints and subscriptions. Click Authorize and paste your admin key (printed by the init container on first start), then Try it out. API keys and signing secrets are shown once, when created.",
+        new ApiSecurity.HeaderKey("X-Admin-Key", "The operator admin key."));
+}
+
 var app = builder.Build();
 
-app.MapGet("/healthz", () => Results.Ok(new { status = "ok", service = "ControlPlane" }));
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok", service = "ControlPlane" })).ExcludeFromDescription();
 if (adminEnabled)
 {
     AdminApi.Map(app);
+}
+
+if (builder.Configuration.DocsEnabled())
+{
+    app.UseApiDocs("WebhookGateway operator API");
 }
 
 app.Logger.LogServiceStarted(adminEnabled ? "Admin API on" : "Admin API off (no Postgres:ConnectionString)");

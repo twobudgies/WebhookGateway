@@ -16,6 +16,7 @@ Images: `docker build --build-arg PROJECT=<Ingest|FanOut|Dispatcher|ControlPlane
 | `Ingest__Quota__Enforce` | Ingest | `true` rejects over-quota events with 429. Default `false` until plan quotas are set (D42). |
 | `Secrets__KmsKeyId` | Dispatcher, ControlPlane | KMS key (id or alias) protecting endpoint signing secrets. Required in production. |
 | `Secrets__LocalKey` | dev/tests | Base64 AES key instead of KMS. **Never in production.** One of the two must be set or the service refuses to start. |
+| `ApiDocs__Enabled` | Ingest, ControlPlane | `true` (default) serves the OpenAPI definition at `/openapi/v1.json` and the Swagger UI at `/docs`; `false` hides both. |
 | `ControlPlane__AdminKey` | ControlPlane | Operator key for `/admin/v1`. Unset means the admin API answers 503. |
 | `ControlPlane__AllowInsecureHttp` | ControlPlane | Allow `http://` endpoint URLs (dev only). |
 | `Dispatcher__Consumer__MaxConcurrencyPerTier` | Dispatcher | Deliveries in flight per tier queue (default 100). |

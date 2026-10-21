@@ -1,3 +1,4 @@
+using WebhookGateway.ApiDocs;
 using WebhookGateway.Aws;
 using WebhookGateway.Hosting;
 using WebhookGateway.Ingest.Api;
@@ -56,10 +57,22 @@ if (builder.Configuration.UseValkey())
         sp.GetRequiredService<ILogger<ResilientQuotaCounter>>()));
 }
 
+if (builder.Configuration.DocsEnabled())
+{
+    builder.Services.AddApiDocs(
+        "WebhookGateway events API",
+        "Send events here; WebhookGateway delivers them to your customers' endpoints. Authenticate with a customer API key (wgk_live_...), created with the operator API. Click Authorize, paste the key, then Try it out.",
+        new ApiSecurity.Bearer("A customer API key created with the operator API, sent as 'Authorization: Bearer wgk_live_...'."));
+}
+
 var app = builder.Build();
 
-app.MapGet("/healthz", () => Results.Ok(new { status = "ok", service = "Ingest" }));
+app.MapGet("/healthz", () => Results.Ok(new { status = "ok", service = "Ingest" })).ExcludeFromDescription();
 EventsEndpoint.Map(app);
+if (builder.Configuration.DocsEnabled())
+{
+    app.UseApiDocs("WebhookGateway events API");
+}
 
 app.Logger.LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : builder.Configuration.UsePostgresBackend() ? "Postgres" : "InMemory");
 app.Run();

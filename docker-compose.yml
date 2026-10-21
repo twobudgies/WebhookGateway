@@ -74,6 +74,7 @@ services:
     environment:
       <<: *environment
       Ingest__Quota__Enforce: ${WG_ENFORCE_QUOTA:-false}
+      ApiDocs__Enabled: ${WG_API_DOCS:-true}
     ports: ["${WG_INGEST_BIND:-0.0.0.0}:${WG_INGEST_PORT:-8080}:8080"]
     healthcheck:
       test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080 && printf \"GET /healthz HTTP/1.0\\r\\n\\r\\n\" >&3 && grep -q \" 200 \" <&3'"]
@@ -107,6 +108,7 @@ services:
       <<: *environment
       ControlPlane__AllowInsecureHttp: ${WG_ALLOW_INSECURE_HTTP:-true}
       ControlPlane__AllowPrivateNetworks: ${WG_ALLOW_PRIVATE_NETWORKS:-true}
+      ApiDocs__Enabled: ${WG_API_DOCS:-true}
     # Local only by default: the operator API must not be reachable from the network (see docs/selfhost.md).
     ports: ["${WG_ADMIN_BIND:-127.0.0.1}:${WG_ADMIN_PORT:-8081}:8080"]
     healthcheck:

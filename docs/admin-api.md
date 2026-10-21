@@ -2,6 +2,8 @@
 
 Status: **v1, implemented** (D46). Tenants are created by an operator in v1 (no self-service signup). The customer-facing portal API (`/portal/v1`, Cognito login) is separate and comes later (P2-2, P2-3).
 
+**Interactive docs:** with the stack running, <http://localhost:8081/docs> (Swagger UI, click Authorize and paste the admin key) and the OpenAPI definition at `/openapi/v1.json`. Turn them off with `ApiDocs__Enabled=false` (`WG_API_DOCS=false` in Compose).
+
 Base path `/admin/v1`, header `X-Admin-Key: <operator key>` on every call. Without `ControlPlane:AdminKey` configured the API answers `503 admin_disabled`; a wrong key is `401` and logged as a warning. Errors use `{ "error": { "code", "message" } }`. Changes become visible to Ingest, Fan-out and Dispatcher within their cache time (30 s).
 
 | Call | What it does |

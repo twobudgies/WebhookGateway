@@ -46,6 +46,22 @@ When the logs settle, in a second terminal:
 
 The script creates a customer, an API key and an endpoint, sends an event, and prints it arriving at the demo receiver with `"signature":"valid"`. Open <http://localhost:9000> to see the receiver's page.
 
+### Try the APIs in your browser (Swagger)
+
+Both APIs publish an interactive page where you can read every call and run it with **Try it out**, no tools needed:
+
+| API | Swagger page | OpenAPI definition (for code generators, Postman, Insomnia) | Authorize with |
+|---|---|---|---|
+| **Events API** (your apps send events here) | <http://localhost:8080/docs> | <http://localhost:8080/openapi/v1.json> | a customer API key `wgk_live_...` |
+| **Operator API** (create customers, keys, endpoints) | <http://localhost:8081/docs> | <http://localhost:8081/openapi/v1.json> | the admin key (see below) |
+
+1. Open <http://localhost:8081/docs>, click **Authorize**, paste the admin key, then run **Create a customer**, **Create an API key** and **Register an endpoint** (the endpoint URL `http://receiver:8080/webhook` is the demo receiver).
+2. Open <http://localhost:8080/docs>, click **Authorize**, paste the customer API key from step 1, open **Send an event**, click **Try it out** and **Execute**. You get `202` and an `eventId`.
+3. Open <http://localhost:9000> to see the event arrive.
+
+Your admin key is printed by the `init` container on first start: `docker compose logs init`, or any time with `docker compose exec controlplane sh -c '. /secrets/env; echo $ControlPlane__AdminKey'`.
+Import the OpenAPI URL into Postman or Insomnia to get every call as a ready request, or generate a client in your language with [OpenAPI Generator](https://openapi-generator.tech/). Hide the pages with `WG_API_DOCS=false`.
+
 That is the whole product running on your machine. Stop it with `Ctrl+C` (or `docker compose down`; add `-v` to delete all data).
 
 ## Use it from your app
@@ -93,11 +109,13 @@ curl -s -X POST http://localhost:8080/v1/events \
 # {"eventId":"evt_..."}   <- HTTP 202: accepted, delivery happens asynchronously
 ```
 
-Prefer clicking to typing? Open [`samples/api.http`](samples/api.http) in VS Code (extension "REST Client") or any JetBrains IDE: every call above, in order, with the values passed along automatically.
+Prefer clicking? Use the [Swagger pages](#try-the-apis-in-your-browser-swagger), or open [`samples/api.http`](samples/api.http) in VS Code (extension "REST Client") or any JetBrains IDE: every call above, in order, with the values passed along automatically.
 
 **6. Receive it** at your endpoint and verify the signature, see [Receiving webhooks](#receiving-webhooks). More operator calls (list, disable, change subscriptions, revoke keys, suspend a customer): [`docs/admin-api.md`](docs/admin-api.md).
 
 ## Sending events (API)
+
+> Interactive version of this section: <http://localhost:8080/docs> (Swagger, while the stack is running).
 
 `POST /v1/events` · header `Authorization: Bearer <api key>` · `Content-Type: application/json`
 
@@ -191,6 +209,7 @@ make images             # build the container images
 |---|---|
 | `src/Ingest`, `src/FanOut`, `src/Dispatcher`, `src/ControlPlane` | the four services |
 | `src/Abstractions` | **the ports**: small interfaces such as `IEventPublisher`, `IDeliverySource`, `IDeliveryStateStore`, `IArchive` that every storage backend implements |
+| `src/ApiDocs` | OpenAPI + Swagger UI shared by the two APIs |
 | `src/Postgres` | the default backend (queues, state, archive on PostgreSQL) and the config database stores |
 | `src/Aws` | optional AWS backend: SQS, DynamoDB, S3, KMS |
 | `src/Valkey` | optional shared rate limiting |
