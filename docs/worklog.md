@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Postgres self-host backend (O-2..O-4)
+- **Status:** PR open
+- **Outcome:** `Backend:Mode=Postgres` with queue, delivery state + due index, rollups, archive, idempotency, quota, maintenance job; hosts wired; tests on real PostgreSQL including the full pipeline without AWS. D54.
+- **Next:** O-5 master key from env/file, network option for private-address delivery (self-hosters call internal services), compose stack + demo receiver + quickstart script (O-6, O-7), README full guide + sample code (O-8, O-11).
+
 ### 2026-10-21 Open source and self-host (Phase O) - current main track
 - **Status:** in progress
 - **Why:** owner decided to publish the repo (Apache-2.0) for adoption and reputation, running on Docker Compose; hosted business postponed (D52, D53). Owner answers: goal adoption, Apache-2.0, real self-host backends, public after clean-up + quick start.

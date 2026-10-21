@@ -5,6 +5,7 @@ using WebhookGateway.Ingest.Limits;
 using WebhookGateway.Ingest.Publishing;
 using WebhookGateway.Ingest.Tenancy;
 using WebhookGateway.Postgres;
+using WebhookGateway.Postgres.Backend;
 using WebhookGateway.Valkey;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,6 +34,12 @@ if (builder.Configuration.UsePostgres())
     builder.Services.AddSingleton<IApiKeyStore, PostgresApiKeyStore>();
 }
 
+// Backend:Mode=Postgres: events go to a PostgreSQL queue, idempotency keys and the monthly count live in PostgreSQL (D53).
+if (builder.Configuration.UsePostgresBackend())
+{
+    builder.Services.AddPostgresIngest(builder.Configuration);
+}
+
 // With Valkey:ConnectionString set, limits are shared across Ingest tasks; each falls back to local behavior if Valkey is down.
 if (builder.Configuration.UseValkey())
 {
@@ -54,5 +61,5 @@ var app = builder.Build();
 app.MapGet("/healthz", () => Results.Ok(new { status = "ok", service = "Ingest" }));
 EventsEndpoint.Map(app);
 
-app.Logger.LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : "InMemory");
+app.Logger.LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : builder.Configuration.UsePostgresBackend() ? "Postgres" : "InMemory");
 app.Run();
