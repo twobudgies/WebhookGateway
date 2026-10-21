@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using WebhookGateway.Aws;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.Dispatcher.Delivery;
 using WebhookGateway.Dispatcher.Endpoints;
 using WebhookGateway.Dispatcher.Outbound;
@@ -12,6 +13,7 @@ builder.Logging.AddStructuredJsonConsole("Dispatcher");
 
 builder.Services.Configure<SenderOptions>(builder.Configuration.GetSection(SenderOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<RollupAccumulator>();
 builder.Services.AddSingleton(RetryPolicy.CreateDefault());
 builder.Services.AddSingleton(sp =>
 {
@@ -26,12 +28,15 @@ builder.Services.AddSingleton<IWebhookSender>(sp => sp.GetRequiredService<Webhoo
 builder.Services.AddSingleton<IEndpointStore, InMemoryEndpointStore>();
 
 // The consumer needs the queues, the archive and delivery_state, so it only runs with Backend:Mode=Aws
-// (Moto locally, see dev/README.md). The retry scheduler runs next to it; rollup flushing is a later roadmap item (P1-10).
+// (Moto locally, see dev/README.md). The retry scheduler and the rollup flusher run next to it.
 if (builder.Configuration.UseAws())
 {
     builder.Services.Configure<DeliveryOptions>(builder.Configuration.GetSection(DeliveryOptions.SectionName));
     builder.Services.Configure<DeliveryConsumerOptions>(builder.Configuration.GetSection(DeliveryConsumerOptions.SectionName));
     builder.Services.AddAwsDispatcher(builder.Configuration);
+    builder.Services.AddAwsRollups(builder.Configuration);
+    builder.Services.Configure<RollupFlusherOptions>(builder.Configuration.GetSection(RollupFlusherOptions.SectionName));
+    builder.Services.AddHostedService<RollupFlusher>();
     builder.Services.AddSingleton<DeliveryProcessor>();
     builder.Services.AddSingleton<IDeliveryProcessor>(sp => sp.GetRequiredService<DeliveryProcessor>());
     builder.Services.Configure<RetrySchedulerOptions>(builder.Configuration.GetSection(RetrySchedulerOptions.SectionName));

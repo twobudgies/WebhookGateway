@@ -22,6 +22,7 @@ public sealed class RollupAccumulator
 {
     private readonly Lock _gate = new();
     private Dictionary<RollupKey, RollupRow> _rows = [];
+    private Dictionary<RollupKey, RollupRow> _carry = [];
 
     public void RecordCreated(TenantId tenantId, EndpointId endpointId, DateTimeOffset at)
     {
@@ -65,14 +66,38 @@ public sealed class RollupAccumulator
         }
     }
 
+    /// <summary>
+    /// Puts rows that could not be written back so the next <see cref="Drain"/> includes them. The rows are in their
+    /// final form (as drained, tenant-wide rows included), so they are added as they are and never re-derived.
+    /// </summary>
+    public void Restore(IReadOnlyDictionary<RollupKey, RollupRow> failed)
+    {
+        ArgumentNullException.ThrowIfNull(failed);
+        lock (_gate)
+        {
+            foreach (var (key, row) in failed)
+            {
+                if (!_carry.TryGetValue(key, out var existing))
+                {
+                    _carry[key] = existing = new RollupRow();
+                }
+
+                existing.Merge(row);
+            }
+        }
+    }
+
     /// <summary>Takes everything recorded so far (endpoint rows and tenant-wide rows) and starts again from empty.</summary>
     public IReadOnlyDictionary<RollupKey, RollupRow> Drain()
     {
         Dictionary<RollupKey, RollupRow> taken;
+        Dictionary<RollupKey, RollupRow> carried;
         lock (_gate)
         {
             taken = _rows;
             _rows = [];
+            carried = _carry;
+            _carry = [];
         }
 
         var result = new Dictionary<RollupKey, RollupRow>(taken);
@@ -85,6 +110,16 @@ public sealed class RollupAccumulator
             }
 
             tenantRow.Merge(row);
+        }
+
+        foreach (var (key, row) in carried)
+        {
+            if (!result.TryGetValue(key, out var existing))
+            {
+                result[key] = existing = new RollupRow();
+            }
+
+            existing.Merge(row);
         }
 
         return result;

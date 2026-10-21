@@ -6,6 +6,7 @@ using Microsoft.Extensions.Time.Testing;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.Dispatcher.Delivery;
 using WebhookGateway.Dispatcher.Endpoints;
 using WebhookGateway.Dispatcher.Outbound;
@@ -20,6 +21,7 @@ public sealed class DeliveryProcessorTests
     private static readonly JsonElement Payload = JsonDocument.Parse("""{"orderId":42}""").RootElement.Clone();
 
     private readonly FakeTimeProvider _time = new(Now);
+    private readonly RollupAccumulator _rollups = new();
     private readonly InMemoryEndpointStore _endpoints = new();
     private readonly InMemoryDeliveryStateStore _state = new();
     private readonly ScriptedSender _sender = new();
@@ -35,7 +37,7 @@ public sealed class DeliveryProcessorTests
     }
 
     private DeliveryProcessor Processor(double jitter = 1.0, ILogger<DeliveryProcessor>? logger = null) =>
-        new(_endpoints, _payloads, _sender, _state, _retries, new RetryPolicy(() => jitter), _time, Options.Create(new DeliveryOptions()), logger ?? NullLogger<DeliveryProcessor>.Instance);
+        new(_endpoints, _payloads, _sender, _state, _retries, new RetryPolicy(() => jitter), _time, Options.Create(new DeliveryOptions()), logger ?? NullLogger<DeliveryProcessor>.Instance, _rollups);
 
     private DeliveryMessage Message(int attempt = 1, DateTimeOffset? notBefore = null, JsonElement? payload = null, string? payloadRef = null)
     {
@@ -62,6 +64,24 @@ public sealed class DeliveryProcessorTests
         Assert.Contains(message.DeliveryId.Value, entry.Message, StringComparison.Ordinal);
         Assert.Contains("http_503", entry.Message, StringComparison.Ordinal);
         Assert.DoesNotContain(message.Payload!.Value.GetRawText(), entry.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Attempts_are_counted_per_endpoint_and_tenant_by_outcome()
+    {
+        _sender.Enqueue(Ok());
+        _sender.Enqueue(Retry(503));
+        var processor = Processor();
+
+        await processor.ProcessAsync(Message(), PlanTier.Basic, CancellationToken.None);
+        await processor.ProcessAsync(Message(), PlanTier.Basic, CancellationToken.None);
+
+        var rows = _rollups.Drain();
+        var endpointRow = rows.Single(r => r.Key.EndpointKey == _target.EndpointId.Value).Value;
+        Assert.Equal(2, endpointRow.Attempts);
+        Assert.Equal(1, endpointRow.Succeeded);
+        Assert.Equal(1, endpointRow.Retried);
+        Assert.Equal(2, rows.Single(r => r.Key.EndpointKey == RollupKey.AllEndpoints).Value.Attempts);
     }
 
     [Fact]

@@ -2,6 +2,7 @@ using System.Text;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.FanOut.Archive;
 using WebhookGateway.FanOut.Delivery;
 using WebhookGateway.FanOut.Routing;
@@ -18,7 +19,8 @@ public sealed partial class FanOutProcessor(
     IEventArchive archive,
     IDeliveryPublisher publisher,
     TimeProvider clock,
-    ILogger<FanOutProcessor> logger)
+    ILogger<FanOutProcessor> logger,
+    RollupAccumulator rollups)
 {
     /// <summary>Payloads up to this size travel inside the SQS message (docs/data-plane.md section 3).</summary>
     public const int MaxInlinePayloadBytes = 200 * 1024;
@@ -67,6 +69,7 @@ public sealed partial class FanOutProcessor(
                 }
 
                 list.Add(CreateDelivery(e, subscription.EndpointId, archiveRefs, now));
+                rollups.RecordCreated(e.TenantId, subscription.EndpointId, now);
             }
 
             if (!matched)
