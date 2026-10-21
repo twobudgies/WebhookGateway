@@ -83,11 +83,10 @@ Customers must be able to trust what the site says, so the page states only what
 - **At rest:** SQS (KMS), S3 archive (KMS), DynamoDB (AWS-managed or KMS), RDS PostgreSQL (encrypted volume), Valkey (encrypted at rest and in transit). Endpoint signing secrets use envelope encryption with a per-secret KMS data key (D45) and API keys are stored only as SHA-256 hashes.
 - **Authenticity of deliveries:** every webhook is signed (HMAC, Standard Webhooks) so the receiver can prove it came from us and was not altered.
 - **Not "end-to-end encrypted" in the strict sense:** the service must read an event to route and deliver it, so it is encrypted in transit and at rest but not hidden from the platform. We will **not** use the words "end-to-end encrypted" unless we build it.
-- **Optional, to decide:** customer-held payload encryption (the sender encrypts the `data` field with the receiver's public key, we route without being able to read it). That would be a real end-to-end option for sensitive customers; tracked as S-14.
+- **Customer-held payload encryption (true end-to-end) is out of scope** (owner decision 2026-10-21, D48).
 
 | ID | Work item | Size | Notes | Depends |
 |---|---|---|---|---|
-| S-14 | Optional payload-level end-to-end encryption (envelope, customer key pair, SDK helpers in each language, docs). Needs an architecture decision first because it limits replay, search and transformation | L | architecture decision with the owner | S-8 |
 | S-15 | Review the encryption settings of every AWS resource in the infrastructure code (P3-1) against the claims on the security page; fail the build if a resource is unencrypted | S | | P3-1 |
 
 ## Cross-cutting: application logging (added 2026-10-21)

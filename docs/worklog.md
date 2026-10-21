@@ -39,7 +39,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 ### 2026-10-21 Developer site and purchase flow (planned, built last)
 - **Status:** planned (todo only), D47
 - **Why:** Owner wants a docs website (side menu, sub-menus, interactive, samples in C#/Java/PHP/Python/others, getting-started, security page) where customers also buy a plan; wants customers to trust the encryption.
-- **Done now:** roadmap Phase 5 (S-1..S-15) and the "Encryption claims" section; D47.
+- **Done now:** roadmap Phase 5 (S-1..S-13, S-15) and the "Encryption claims" section; D47. Owner skipped end-to-end payload encryption (S-14 removed, D48).
 - **Resume from:** nothing to do until the product is feature-complete; start with S-1/S-2. Decisions needed then: framework, payment provider, prices, domain.
 
 ### 2026-10-21 Container images and configuration reference
