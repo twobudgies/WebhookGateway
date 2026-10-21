@@ -12,7 +12,8 @@ Status: **APPROVED** (D32, 2026-10-21). Implementation items: L-1..L-10 in `road
 
 - Use `ILogger<T>` with message templates and named fields (never string interpolation), so fields stay queryable.
 - **Never log:** payload bodies, headers of inbound requests, API keys, signing secrets, OAuth tokens, endpoint URLs' query strings. Log ids, sizes, status codes and error classes only.
-- Always include when known: `tenantId`, `eventId`, `deliveryId`, `endpointId`, `attempt`, `traceId`. Standard fields added by the host: `service`, `version`, `environment`.
+- Every line has `component` (Ingest, FanOut, Dispatcher, ControlPlane), `category` (the class), `level`, `timestamp`, `message`; `traceId`/`spanId` when a trace is active. Filter first by `component`, then by id (D38).
+- Always include when known: `tenantId`, `eventId`, `deliveryId`, `endpointId`, `attempt`, `traceId`. Standard fields added by the host: `component`, `category`.
 - Exceptions are logged once, where they are handled, with the exception object (not just the message).
 
 ## Levels

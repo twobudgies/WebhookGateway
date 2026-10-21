@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Abstractions project, component field in logs
+- **Status:** PR open
+- **Why:** hosts could not reference `src/Aws` (circular), needed before wiring; owner asked for a `component` in every log line.
+- **Outcome:** `src/Abstractions` (D37); `ComponentJsonFormatter` in `src/Hosting` with `component` on all lines of all four services (D38), tested; `logging.md`, roadmap L-11 updated.
+- **Resume from:** host wiring (DI) with AWS vs in-memory config; then retry scheduler loop (gsi3), rollup flush loop, Valkey (P1-4).
+
 ### 2026-10-21 Dispatcher consumer
 - **Status:** PR open
 - **Outcome:** `DeliveryConsumer` (loop per tier, bounded concurrency), `IDeliverySource`, `SqsDeliverySource`, `InMemoryDeliverySource`, `IDeliveryProcessor`; logs; unit tests and a Moto round trip. D36 has the reasons.

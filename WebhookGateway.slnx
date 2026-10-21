@@ -3,6 +3,9 @@
   <Folder Name="/src/Contracts/">
     <Project Path="src/Contracts/WebhookGateway.Contracts.csproj" />
   </Folder>
+  <Folder Name="/src/Abstractions/">
+    <Project Path="src/Abstractions/WebhookGateway.Abstractions.csproj" />
+  </Folder>
   <Folder Name="/src/Aws/">
     <Project Path="src/Aws/WebhookGateway.Aws.csproj" />
   </Folder>

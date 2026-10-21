@@ -7,7 +7,7 @@ using WebhookGateway.FanOut.Source;
 using WebhookGateway.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Logging.AddStructuredJsonConsole();
+builder.Logging.AddStructuredJsonConsole("FanOut");
 
 // In-memory implementations until the AWS-backed ones are verified against emulators (roadmap P1-5b).
 builder.Services.AddSingleton(TimeProvider.System);
