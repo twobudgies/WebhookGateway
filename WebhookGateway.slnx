@@ -24,6 +24,9 @@
   <Folder Name="/src/Hosting/">
     <Project Path="src/Hosting/WebhookGateway.Hosting.csproj" />
   </Folder>
+  <Folder Name="/src/Valkey/">
+    <Project Path="src/Valkey/WebhookGateway.Valkey.csproj" />
+  </Folder>
   <Folder Name="/src/Ingest/">
     <Project Path="src/Ingest/WebhookGateway.Ingest.csproj" />
   </Folder>

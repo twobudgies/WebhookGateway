@@ -19,7 +19,7 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P1-1 | Shared `Contracts` project: IDs (prefix + UUIDv7), event and delivery messages, enums | S | risky (contract) | P0-2 |
 | P1-2 | Config schema migrations (`plans`, `tenants`, `api_keys`, `endpoints`, `subscriptions`, `usage_monthly`, ...) per `database.md`; seed plans | M | risky (schema); **needs owner's final review of `database.md`** | P0-4 |
 | P1-3 | Ingest: auth (API key), envelope validation, enqueue to `events`, `202`; abstractions `IEventPublisher`, `IRateLimiter`, `IStateStore` | M | risky (auth) | P1-1, P1-2 |
-| P1-4 | Rate limiting and monthly quota in Valkey (token bucket, pre-reservation, local fallback), idempotency keys, `429` responses | L | | P1-3 |
+| P1-4 | Rate limiting and monthly quota in Valkey (token bucket, pre-reservation, local fallback), idempotency keys, `429` responses. **Mostly done 2026-10-21 (D42):** rate limit, idempotency, monthly count, 429 rate_limited/quota_exceeded (quota enforcement off until the owner sets numbers); pending: token chunk reservation, flush to `usage_monthly` | L | | P1-3 |
 | P1-5 | Fan-out: read `events`, match subscriptions (cached config), S3 archive batches, enqueue deliveries (tier queues) | L | | P1-1, P1-2 |
 | P1-6 | Dispatcher: consume deliveries, HMAC signing (Standard Webhooks), async HTTP with timeout, SSRF protection, result handling | L | risky (security) | P1-5 |
 | P1-7 | Retries and `delivery_state` in DynamoDB; retry scheduler for delays over 15 min; circuit breaker; Expired/Exhausted states; DLQ handling | L | | P1-6 |

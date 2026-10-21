@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Valkey accept limits (P1-4)
+- **Status:** PR open
+- **Outcome:** `src/Valkey` (token bucket Lua, idempotency, monthly counter), decorators with fallback in Ingest, endpoint order count -> claim -> publish with rollback on failure, tests (Valkey integration, degraded mode, endpoint). D42 holds the reasons and what is deliberately not done.
+- **For the owner:** monthly quota numbers (Basic/Advanced/Premium) are placeholders; enforcement is off until you set them.
+- **Resume from:** per-delivery pacing and connection permits (P1-8, P1-9) in Valkey, circuit breaker; config stores after the `database.md` review.
+
 ### 2026-10-21 Rollup counting and flushing (P1-10 part)
 - **Status:** PR open
 - **Outcome:** processors feed the accumulator, `RollupFlusher` (Hosting) writes every 10 s, failed rows carried over, wired in Aws mode for Fan-out and Dispatcher; D41.

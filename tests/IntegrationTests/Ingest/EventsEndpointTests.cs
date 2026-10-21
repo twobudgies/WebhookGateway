@@ -7,7 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
 using WebhookGateway.Ingest.Api;
+using WebhookGateway.Ingest.Limits;
 using WebhookGateway.Ingest.Publishing;
+using WebhookGateway.Ingest.Tenancy;
 
 namespace WebhookGateway.IntegrationTests.Ingest;
 
@@ -69,6 +71,29 @@ public sealed class EventsEndpointTests : IClassFixture<IngestFactory>
 
         Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
         Assert.Contains(_factory.Published.Messages, m => m.IdempotencyKey == "order-42-created");
+    }
+
+    [Fact]
+    public async Task A_repeated_idempotency_key_returns_the_first_event_and_publishes_once()
+    {
+        using var client = Client();
+        var key = $"order-{Guid.NewGuid():N}";
+
+        async Task<string> Send()
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, EventsUri) { Content = Json(ValidBody) };
+            request.Headers.Add("Idempotency-Key", key);
+            using var response = await client.SendAsync(request);
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+            using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            return doc.RootElement.GetProperty("eventId").GetString()!;
+        }
+
+        var first = await Send();
+        var second = await Send();
+
+        Assert.Equal(first, second);
+        Assert.Single(_factory.Published.Messages, m => m.IdempotencyKey == key);
     }
 
     [Fact]
@@ -200,5 +225,54 @@ public sealed class EventsEndpointPublishFailureTests : IClassFixture<IngestFact
     {
         public ValueTask PublishAsync(EventMessage message, CancellationToken cancellationToken) =>
             throw new InvalidOperationException("queue down");
+    }
+}
+
+public sealed class EventsEndpointQuotaTests : IClassFixture<IngestFactory>
+{
+    private readonly IngestFactory _factory;
+
+    public EventsEndpointQuotaTests(IngestFactory factory) => _factory = factory;
+
+    private static async Task<HttpResponseMessage> PostAsync(HttpClient client)
+    {
+        using var content = new StringContent("""{"type":"order.created","data":{"a":1}}""", Encoding.UTF8, "application/json");
+        return await client.PostAsync(new Uri("/v1/events", UriKind.Relative), content);
+    }
+
+    [Fact]
+    public async Task With_enforcement_on_events_over_the_monthly_quota_get_429_and_are_not_published()
+    {
+        using var enforcing = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.UseSetting("Ingest:Quota:Enforce", "true");
+            builder.ConfigureServices(services => services.AddSingleton<IQuotaCounter>(new FixedCountQuota(PlanLimits.For(WebhookGateway.Contracts.PlanTier.Basic).MonthlyQuota)));
+        });
+        using var client = enforcing.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IngestFactory.ActiveKey);
+
+        using var response = await PostAsync(client);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+        Assert.Empty(enforcing.Services.GetRequiredService<InMemoryEventPublisher>().Messages);
+    }
+
+    [Fact]
+    public async Task By_default_the_quota_is_counted_but_not_enforced()
+    {
+        using var client = _factory.WithWebHostBuilder(builder =>
+            builder.ConfigureServices(services => services.AddSingleton<IQuotaCounter>(new FixedCountQuota(long.MaxValue / 2)))).CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", IngestFactory.ActiveKey);
+
+        using var response = await PostAsync(client);
+
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+    }
+
+    private sealed class FixedCountQuota(long count) : IQuotaCounter
+    {
+        public ValueTask<long> IncrementAsync(TenantId tenantId, DateTimeOffset now, CancellationToken cancellationToken) => ValueTask.FromResult(count + 1);
+
+        public ValueTask DecrementAsync(TenantId tenantId, DateTimeOffset now, CancellationToken cancellationToken) => ValueTask.CompletedTask;
     }
 }
