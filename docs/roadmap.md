@@ -73,6 +73,9 @@ Context from the owner: no registered organization yet, product launched on the 
 | L-L10 | **Abuse and fraud controls for a public sign-up:** per-tenant limits already exist; add outbound SSRF checks (done), signup verification and a kill switch to suspend a tenant fast (admin API suspend exists) | agent | S-10 | |
 | L-L11 | **First-customer process:** how an early customer is onboarded (operator creates the tenant through the admin API, sends the key, payment link), a feedback channel | owner + agent | works today without self-service signup | |
 
+| L-L12 | **Validate demand before spending on production:** list 50 target companies (SaaS products that send webhooks to their own customers), talk to 10 to 20 of them, get 1 to 3 design partners who agree to try it; publish a landing page with a waitlist; write 3 to 5 developer articles (cost of running webhooks, retries done right); track signups | owner + agent | see D51: keep AWS spend to staging until a design partner is committed | |
+| L-L13 | **Pick a wedge** (why someone chooses us over Svix/Hookdeck/building it): candidates are very low price at high volume (our cost model is far below Hookdeck's list price), data residency in ap-south-1, simpler pricing, open-source plus hosted; decide from the conversations in L-L12 | owner + agent | | L-L12 |
+
 Order: L-L1/L-L4/L-L5 (owner, start now because registration takes time) in parallel with L-L6 and L-L7 (agent), then L-L8, then L-L9. Self-service signup and checkout (S-9, S-10) can wait until the first customers are onboarded by hand.
 
 ## Phase 5: developer site, docs and purchase (added 2026-10-21, built last)
