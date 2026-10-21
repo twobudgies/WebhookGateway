@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Market reality check (D51)
+- **Status:** done (answer given to the owner); follow-ups L-L12, L-L13 on the roadmap
+- **Why:** owner asked whether this can be a business and how big the market is.
+- **Outcome:** real category, small independent vendors, no reliable market size, free/open-source competition; validate demand and choose a wedge before production spend.
+
 ### 2026-10-21 Launch readiness (Phase L)
 - **Status:** in progress (owner items waiting)
 - **Why:** owner plans to release on the web soon: no registered organization, worldwide audience, first customer in 1 to 3 months.
