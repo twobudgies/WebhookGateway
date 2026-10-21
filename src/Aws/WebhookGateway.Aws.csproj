@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>WebhookGateway.Aws</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.SQS" />
+    <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
+    <ProjectReference Include="..\Ingest\WebhookGateway.Ingest.csproj" />
+    <ProjectReference Include="..\FanOut\WebhookGateway.FanOut.csproj" />
+    <ProjectReference Include="..\Dispatcher\WebhookGateway.Dispatcher.csproj" />
+  </ItemGroup>
+</Project>
