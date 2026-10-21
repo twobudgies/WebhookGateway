@@ -273,7 +273,7 @@ public sealed class DeliveryProcessorTests
     }
 
     private static DeliveryStateRecord Row(DeliveryMessage m, DeliveryStatus status) =>
-        new(m.TenantId, m.DeliveryId, m.EndpointId, m.EventId, m.EventType, m.OccurredAt, status, m.Attempt, null, null, null, m.Payload, null, m.CreatedAt, m.NotBefore);
+        new(m.TenantId, m.DeliveryId, m.EndpointId, m.EventId, m.EventType, m.OccurredAt, status, m.Attempt, null, null, null, m.Payload, null, m.CreatedAt, m.NotBefore, PlanTier.Basic);
 
     private sealed class ScriptedSender : IWebhookSender
     {

@@ -26,7 +26,7 @@ builder.Services.AddSingleton<IWebhookSender>(sp => sp.GetRequiredService<Webhoo
 builder.Services.AddSingleton<IEndpointStore, InMemoryEndpointStore>();
 
 // The consumer needs the queues, the archive and delivery_state, so it only runs with Backend:Mode=Aws
-// (Moto locally, see dev/README.md). Rollup flushing and the retry scheduler are later roadmap items (P1-10, P1-7).
+// (Moto locally, see dev/README.md). The retry scheduler runs next to it; rollup flushing is a later roadmap item (P1-10).
 if (builder.Configuration.UseAws())
 {
     builder.Services.Configure<DeliveryOptions>(builder.Configuration.GetSection(DeliveryOptions.SectionName));
@@ -34,7 +34,9 @@ if (builder.Configuration.UseAws())
     builder.Services.AddAwsDispatcher(builder.Configuration);
     builder.Services.AddSingleton<DeliveryProcessor>();
     builder.Services.AddSingleton<IDeliveryProcessor>(sp => sp.GetRequiredService<DeliveryProcessor>());
+    builder.Services.Configure<RetrySchedulerOptions>(builder.Configuration.GetSection(RetrySchedulerOptions.SectionName));
     builder.Services.AddHostedService<DeliveryConsumer>();
+    builder.Services.AddHostedService<RetryScheduler>();
 }
 
 var host = builder.Build();

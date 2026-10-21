@@ -39,21 +39,21 @@ public sealed partial class DeliveryProcessor(
 
         if (now - message.NotBefore > _options.MaxBacklogAge)
         {
-            await RecordAsync(message, DeliveryStatus.Expired, nextAttemptAt: null, statusCode: null, "expired", now, cancellationToken).ConfigureAwait(false);
+            await RecordAsync(message, tier, DeliveryStatus.Expired, nextAttemptAt: null, statusCode: null, "expired", now, cancellationToken).ConfigureAwait(false);
             return DeliveryAction.Expired;
         }
 
         var target = await endpoints.GetAsync(message.TenantId, message.EndpointId, cancellationToken).ConfigureAwait(false);
         if (target is null)
         {
-            await RecordAsync(message, DeliveryStatus.Failed, null, null, "endpoint_unavailable", now, cancellationToken).ConfigureAwait(false);
+            await RecordAsync(message, tier, DeliveryStatus.Failed, null, null, "endpoint_unavailable", now, cancellationToken).ConfigureAwait(false);
             return DeliveryAction.Failed;
         }
 
         var payload = await payloads.ResolveAsync(message, cancellationToken).ConfigureAwait(false);
         if (payload is null)
         {
-            await RecordAsync(message, DeliveryStatus.Failed, null, null, "payload_unavailable", now, cancellationToken).ConfigureAwait(false);
+            await RecordAsync(message, tier, DeliveryStatus.Failed, null, null, "payload_unavailable", now, cancellationToken).ConfigureAwait(false);
             return DeliveryAction.Failed;
         }
 
@@ -72,7 +72,7 @@ public sealed partial class DeliveryProcessor(
                 return DeliveryAction.Delivered;
 
             case SendOutcome.Failed:
-                await RecordAsync(message, DeliveryStatus.Failed, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
+                await RecordAsync(message, tier, DeliveryStatus.Failed, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
                 return DeliveryAction.Failed;
 
             default:
@@ -90,19 +90,19 @@ public sealed partial class DeliveryProcessor(
         var delay = retryPolicy.NextDelay(tier, message.Attempt, result.RetryAfter);
         if (delay is null)
         {
-            await RecordAsync(message, DeliveryStatus.Exhausted, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
+            await RecordAsync(message, tier, DeliveryStatus.Exhausted, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
             return DeliveryAction.Exhausted;
         }
 
         var nextAttemptAt = now + delay.Value;
         if (delay.Value > _options.MaxQueueDelay)
         {
-            await RecordAsync(message, DeliveryStatus.Scheduled, nextAttemptAt, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
+            await RecordAsync(message, tier, DeliveryStatus.Scheduled, nextAttemptAt, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
             return DeliveryAction.RetryScheduled;
         }
 
         // Row first, then the message: if publishing fails the message is redelivered and the row is simply rewritten.
-        await RecordAsync(message, DeliveryStatus.RetryScheduled, nextAttemptAt, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
+        await RecordAsync(message, tier, DeliveryStatus.RetryScheduled, nextAttemptAt, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
         await retries.PublishAsync(tier, NextAttempt(message, nextAttemptAt), delay.Value, cancellationToken).ConfigureAwait(false);
         return DeliveryAction.RetryQueued;
     }
@@ -116,6 +116,7 @@ public sealed partial class DeliveryProcessor(
 
     private ValueTask RecordAsync(
         DeliveryMessage message,
+        PlanTier tier,
         DeliveryStatus status,
         DateTimeOffset? nextAttemptAt,
         int? statusCode,
@@ -150,7 +151,8 @@ public sealed partial class DeliveryProcessor(
                 message.Payload,
                 message.PayloadRef,
                 message.CreatedAt,
-                now),
+                now,
+                tier),
             cancellationToken);
     }
 

@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Retry scheduler
+- **Status:** PR open
+- **Outcome:** `RetryScheduler` (poll the due index, publish, flip row), `IDueDeliveryIndex`, DynamoDB gsi3 query, `Tier` on `DeliveryStateRecord`, wired in Aws mode; unit + Moto tests. D40 has the reasons.
+- **Resume from:** rollup flush loop (P1-10), Valkey limiter/idempotency/quota (P1-4), circuit breaker / parking; config database stores after the owner reviews `database.md`.
+
 ### 2026-10-21 Host wiring
 - **Status:** PR open
 - **Outcome:** `Backend:Mode=Aws` switch (D39) with `AddAwsIngest/FanOut/Dispatcher`; Dispatcher host now runs the delivery consumer in Aws mode; startup log line states the mode; Moto integration test proves Ingest to the `events` queue.

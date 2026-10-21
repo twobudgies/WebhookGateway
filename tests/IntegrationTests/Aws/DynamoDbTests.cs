@@ -46,7 +46,7 @@ public sealed class DynamoDbTests
         var endpointId = EndpointId.New();
         return new DeliveryStateRecord(
             TenantId.New(), DeliveryId.For(eventId, endpointId), endpointId, eventId, "order.created", Now.AddMinutes(-5), status, 2,
-            next, 503, "http_503", JsonDocument.Parse("""{"a":1}""").RootElement.Clone(), null, Now.AddMinutes(-4), Now);
+            next, 503, "http_503", JsonDocument.Parse("""{"a":1}""").RootElement.Clone(), null, Now.AddMinutes(-4), Now, PlanTier.Basic);
     }
 
     private static DynamoDbDeliveryStateStore Store(IAmazonDynamoDB dynamo) =>
@@ -124,5 +124,30 @@ public sealed class DynamoDbTests
         Assert.Equal("2", item.Item["attempts"].N);
         Assert.Equal("2", item.Item["succeeded"].N);
         Assert.Equal("80", item.Item["rtSum"].N);
+    }
+
+    [Fact]
+    public async Task Only_scheduled_deliveries_that_are_due_come_back_from_the_index()
+    {
+        var dynamo = await ConnectAsync();
+        if (dynamo is null)
+        {
+            return;
+        }
+
+        var store = Store(dynamo);
+        var due = Record(DeliveryStatus.Scheduled, Now.AddMinutes(-1));
+        var later = Record(DeliveryStatus.Scheduled, Now.AddHours(3));
+        var notScheduled = Record(DeliveryStatus.RetryScheduled, Now.AddMinutes(-1));
+        foreach (var r in new[] { due, later, notScheduled })
+        {
+            await store.PutAsync(r, CancellationToken.None);
+        }
+
+        var result = await store.GetDueAsync(Now, 1000, CancellationToken.None);
+
+        Assert.Contains(result, r => r.DeliveryId == due.DeliveryId && r.Tier == PlanTier.Basic);
+        Assert.DoesNotContain(result, r => r.DeliveryId == later.DeliveryId);
+        Assert.DoesNotContain(result, r => r.DeliveryId == notScheduled.DeliveryId);
     }
 }

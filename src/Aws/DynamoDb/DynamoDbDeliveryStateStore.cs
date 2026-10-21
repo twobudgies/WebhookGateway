@@ -20,7 +20,7 @@ public sealed partial class DynamoDbDeliveryStateStore(
     IAmazonDynamoDB dynamo,
     TimeProvider clock,
     IOptions<DynamoDbOptions> options,
-    ILogger<DynamoDbDeliveryStateStore> logger) : IDeliveryStateStore
+    ILogger<DynamoDbDeliveryStateStore> logger) : IDeliveryStateStore, IDueDeliveryIndex
 {
     private readonly DynamoDbOptions _options = options.Value;
 
@@ -51,6 +51,7 @@ public sealed partial class DynamoDbDeliveryStateStore(
             ["occurredAt"] = S(Iso(record.OccurredAt)),
             ["status"] = S(record.Status.ToString()),
             ["attempt"] = N(record.Attempt),
+            ["tier"] = S(record.Tier.ToString()),
             ["createdAt"] = S(Iso(record.CreatedAt)),
             ["updatedAt"] = S(Iso(record.UpdatedAt)),
             ["gsi1pk"] = S($"{record.TenantId.Value}#{record.Status}"),
@@ -101,6 +102,31 @@ public sealed partial class DynamoDbDeliveryStateStore(
         LogDeleted(logger, tenantId.Value, deliveryId.Value);
     }
 
+    public async ValueTask<IReadOnlyList<DeliveryStateRecord>> GetDueAsync(DateTimeOffset now, int limit, CancellationToken cancellationToken)
+    {
+        var due = new List<DeliveryStateRecord>();
+        for (var bucket = 0; bucket < _options.DueBuckets && due.Count < limit; bucket++)
+        {
+            var response = await dynamo.QueryAsync(
+                new QueryRequest
+                {
+                    TableName = _options.DeliveryStateTable,
+                    IndexName = "gsi3",
+                    KeyConditionExpression = "gsi3pk = :b AND gsi3sk <= :now",
+                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                    {
+                        [":b"] = S($"due#{bucket}"),
+                        [":now"] = S(Iso(now)),
+                    },
+                    Limit = limit - due.Count,
+                },
+                cancellationToken).ConfigureAwait(false);
+            due.AddRange(response.Items.Select(FromItem));
+        }
+
+        return due;
+    }
+
     private static Dictionary<string, AttributeValue> Key(TenantId tenantId, DeliveryId deliveryId) =>
         new() { ["pk"] = S(PartitionKey(tenantId, deliveryId)) };
 
@@ -143,7 +169,8 @@ public sealed partial class DynamoDbDeliveryStateStore(
             item.TryGetValue("payload", out var payload) ? JsonDocument.Parse(payload.S).RootElement.Clone() : null,
             item.TryGetValue("payloadRef", out var payloadRef) ? payloadRef.S : null,
             ParseIso(item["createdAt"].S),
-            ParseIso(item["updatedAt"].S));
+            ParseIso(item["updatedAt"].S),
+            item.TryGetValue("tier", out var tier) ? Enum.Parse<PlanTier>(tier.S) : PlanTier.Basic);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "delivery_state stored {DeliveryId} of tenant {TenantId}: {Status}, attempt {Attempt}")]
     private static partial void LogStored(ILogger logger, string tenantId, string deliveryId, DeliveryStatus status, int attempt);
