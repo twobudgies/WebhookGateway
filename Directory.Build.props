@@ -10,4 +10,8 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- Microsoft.Extensions.Logging also defines EventId; in this solution EventId always means our identifier. -->
+    <Using Include="WebhookGateway.Contracts.Ids.EventId" Alias="EventId" />
+  </ItemGroup>
 </Project>

@@ -32,7 +32,7 @@ Full column-level model in `tenancy-and-limits.md` section 6.
 | `usage_monthly` | tenant_id, month, accepted, rejected_rate, rejected_quota, rejected_backlog |
 
 Notes:
-- IDs: prefixed ULIDs as text *(review)*.
+- IDs: a type prefix plus a UUIDv7 (`evt_...`); store the UUID part in a native `uuid` column and add the prefix in the application *(review)*.
 - Indexes at minimum: `subscriptions(tenant_id, event_type)`, `endpoints(tenant_id)`, `api_keys(key_hash)`.
 - Every query filters on `tenant_id`; RLS *(review)*.
 - Backups: automated, point-in-time recovery; restore tested before first customer.

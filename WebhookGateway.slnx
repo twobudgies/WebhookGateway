@@ -6,6 +6,9 @@
   <Folder Name="/src/ControlPlane/">
     <Project Path="src/ControlPlane/WebhookGateway.ControlPlane.csproj" />
   </Folder>
+  <Folder Name="/src/Core/">
+    <Project Path="src/Core/WebhookGateway.Core.csproj" />
+  </Folder>
   <Folder Name="/src/Dispatcher/">
     <Project Path="src/Dispatcher/WebhookGateway.Dispatcher.csproj" />
   </Folder>
