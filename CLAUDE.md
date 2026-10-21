@@ -47,6 +47,7 @@ Keep detail in `docs/` and link it here rather than growing this file.
 - `docs/orchestrator-spec.md`: **DRAFT v0.1** spec for the autonomous task-chain orchestrator (not yet approved; supersedes `workflow.md` only on approval)
 - `docs/flow-walkthrough.md`: **start here**: one event end to end, with code pointers and what is built vs. not (living; update with every task)
 - `docs/load-testing.md`: load/performance test plan, scenarios, metrics, how capacity numbers are derived (**plan v1**; results go to `capacity.md`)
+- `docs/admin-api.md`: operator API to create tenants, API keys, endpoints and subscriptions, with an onboarding example
 - `docs/glossary.md`: domain terms
 - `docs/decisions.md`: decision log (what, why, date)
 - `docs/worklog.md`: agent work log (why, end goal, status, resume point); **read first after any interruption, update as you work**
