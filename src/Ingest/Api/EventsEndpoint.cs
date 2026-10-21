@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Options;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
 using WebhookGateway.Ingest.Limits;
@@ -29,6 +30,9 @@ public static partial class EventsEndpoint
         IApiKeyStore keys,
         IRateLimiter limiter,
         IEventPublisher publisher,
+        IIdempotencyStore idempotency,
+        IQuotaCounter quota,
+        IOptions<QuotaOptions> quotaOptions,
         TimeProvider clock,
         ILogger<IngestApiMarker> logger,
         CancellationToken cancellationToken)
@@ -96,12 +100,37 @@ public static partial class EventsEndpoint
             idempotencyKey.Length == 0 ? null : idempotencyKey,
             parsed.Data);
 
+        var count = await quota.IncrementAsync(tenant.TenantId, now, cancellationToken).ConfigureAwait(false);
+        if (quotaOptions.Value.Enforce && count > tenant.Limits.MonthlyQuota)
+        {
+            await quota.DecrementAsync(tenant.TenantId, now, cancellationToken).ConfigureAwait(false);
+            LogQuotaExceeded(logger, tenant.TenantId.Value, tenant.Limits.MonthlyQuota);
+            return ApiErrors.Create(StatusCodes.Status429TooManyRequests, "quota_exceeded", "Monthly event quota exceeded.");
+        }
+
+        if (message.IdempotencyKey is not null)
+        {
+            var claim = await idempotency.TryClaimAsync(tenant.TenantId, message.IdempotencyKey, message.EventId, tenant.Limits.IdempotencyWindow, cancellationToken).ConfigureAwait(false);
+            if (!claim.Claimed)
+            {
+                await quota.DecrementAsync(tenant.TenantId, now, cancellationToken).ConfigureAwait(false);
+                LogDuplicate(logger, tenant.TenantId.Value, claim.ExistingEventId?.Value);
+                return Results.Json(new { eventId = claim.ExistingEventId?.Value }, statusCode: StatusCodes.Status202Accepted);
+            }
+        }
+
         try
         {
             await publisher.PublishAsync(message, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            if (message.IdempotencyKey is not null)
+            {
+                await idempotency.ReleaseAsync(tenant.TenantId, message.IdempotencyKey, cancellationToken).ConfigureAwait(false);
+            }
+
+            await quota.DecrementAsync(tenant.TenantId, now, cancellationToken).ConfigureAwait(false);
             LogPublishFailed(logger, ex, tenant.TenantId.Value, message.EventId.Value);
             return ApiErrors.Create(StatusCodes.Status503ServiceUnavailable, "unavailable", "The event could not be stored. Retry the request.");
         }
@@ -224,6 +253,12 @@ public static partial class EventsEndpoint
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Event {EventId} of tenant {TenantId} could not be published; responding 503")]
     private static partial void LogPublishFailed(ILogger logger, Exception exception, string tenantId, string eventId);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Request rejected: tenant {TenantId} exceeded its monthly quota of {Quota} events")]
+    private static partial void LogQuotaExceeded(ILogger logger, string tenantId, long quota);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Duplicate request for tenant {TenantId}; returning the original event {EventId}")]
+    private static partial void LogDuplicate(ILogger logger, string tenantId, string? eventId);
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "Accepted event {EventId} ({EventType}) of tenant {TenantId}")]
     private static partial void LogAccepted(ILogger logger, string tenantId, string eventId, string eventType);

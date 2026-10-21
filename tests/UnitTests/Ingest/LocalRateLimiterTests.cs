@@ -7,7 +7,7 @@ namespace WebhookGateway.UnitTests.Ingest;
 
 public sealed class LocalRateLimiterTests
 {
-    private static readonly PlanLimits Small = new(EventsPerSecond: 2, BurstCapacity: 2, MaxPayloadBytes: 1024);
+    private static readonly PlanLimits Small = new(EventsPerSecond: 2, BurstCapacity: 2, MaxPayloadBytes: 1024, IdempotencyWindow: TimeSpan.FromHours(1), MonthlyQuota: 1000);
 
     [Fact]
     public async Task Tenants_have_independent_buckets()

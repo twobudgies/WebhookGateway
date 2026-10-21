@@ -29,3 +29,5 @@ Backend__Mode=Aws Aws__ServiceUrl=http://localhost:5050 dotnet run --project src
 ```
 
 The same two variables work for `src/FanOut` and `src/Dispatcher` (the Dispatcher queue consumer starts only in `Aws` mode). Bucket, table and queue names default to the ones `dev-up.sh` creates. Subscriptions and endpoints are still in-memory, so Fan-out and Dispatcher have nothing to route until the config database stores exist. Decision D39.
+
+To share limits across Ingest tasks (rate limit, idempotency keys, monthly count) point it at Valkey: `Valkey__ConnectionString=localhost:6379`. Without it Ingest uses in-process limits. Quota enforcement stays off unless `Ingest__Quota__Enforce=true` (D42).
