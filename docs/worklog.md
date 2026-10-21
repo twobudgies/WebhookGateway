@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Dispatcher consumer
+- **Status:** PR open
+- **Outcome:** `DeliveryConsumer` (loop per tier, bounded concurrency), `IDeliverySource`, `SqsDeliverySource`, `InMemoryDeliverySource`, `IDeliveryProcessor`; logs; unit tests and a Moto round trip. D36 has the reasons.
+- **Resume from:** host wiring (DI) with AWS vs in-memory config for Ingest, Fan-out, Dispatcher; then retry scheduler loop (gsi3), rollup flush loop, Valkey (P1-4).
+
 ### 2026-10-21 DynamoDB adapters
 - **Status:** PR open
 - **Outcome:** `DynamoDbDeliveryStateStore` (gsi1/2/3 attributes, TTL) and `DynamoDbRollupWriter` (atomic ADD) in `src/Aws/DynamoDb`, with logs and Moto tests. Decision D34 holds the reasons.

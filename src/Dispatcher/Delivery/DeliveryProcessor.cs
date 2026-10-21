@@ -45,7 +45,7 @@ public sealed partial class DeliveryProcessor(
     RetryPolicy retryPolicy,
     TimeProvider clock,
     IOptions<DeliveryOptions> options,
-    ILogger<DeliveryProcessor> logger)
+    ILogger<DeliveryProcessor> logger) : IDeliveryProcessor
 {
     private readonly DeliveryOptions _options = options.Value;
 
