@@ -65,6 +65,7 @@ public sealed class IpAddressPolicyTests
     [InlineData("224.0.0.1")]
     [InlineData("fe80::1")]
     [InlineData("ff02::1")]
+    [InlineData("fd00:ec2::254")]
     public void The_private_install_policy_still_blocks_metadata_unspecified_and_multicast(string text)
     {
         Assert.True(IpAddressPolicy.IsBlockedAllowingPrivate(IPAddress.Parse(text)), text);

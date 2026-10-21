@@ -31,6 +31,11 @@ public static class EndpointUrlValidator
         }
 
         var host = url.IdnHost;
+        if (IpAddressPolicy.IsMetadataHostName(host))
+        {
+            return "Host name is not allowed.";
+        }
+
         if (allowPrivateNetworks)
         {
             return IPAddress.TryParse(host.Trim('[', ']'), out var privateLiteral) && IpAddressPolicy.IsBlockedAllowingPrivate(privateLiteral)

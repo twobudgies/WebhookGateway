@@ -61,4 +61,15 @@ public sealed class EndpointUrlValidatorTests
     {
         Assert.NotNull(EndpointUrlValidator.Validate(new Uri("http://169.254.169.254/latest"), allowInsecureHttp: true, allowPrivateNetworks: true));
     }
+
+    [Theory]
+    [InlineData("http://metadata.google.internal/computeMetadata/v1/")]
+    [InlineData("http://METADATA.GOOGLE.INTERNAL./x")]
+    [InlineData("http://instance-data/latest/meta-data/")]
+    [InlineData("http://[fd00:ec2::254]/latest/meta-data/")]
+    public void Cloud_metadata_targets_are_refused_even_on_private_installs(string url)
+    {
+        Assert.NotNull(EndpointUrlValidator.Validate(new Uri(url), allowInsecureHttp: true, allowPrivateNetworks: true));
+        Assert.NotNull(EndpointUrlValidator.Validate(new Uri(url), allowInsecureHttp: true, allowPrivateNetworks: false));
+    }
 }
