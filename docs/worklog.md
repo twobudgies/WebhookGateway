@@ -30,6 +30,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 S3 archive adapter
+- **Status:** PR open
+- **Outcome:** `S3EventArchive` (gzip JSONL per batch, KMS optional, `payloadRef` `s3://bucket/key#line`) and `S3PayloadResolver` (Dispatcher side) in `src/Aws/S3`, with logs (no payloads) and Moto tests. D33 records gzip instead of zstd. `data-plane.md` and the walkthrough updated.
+- **Resume from:** DynamoDB `IDeliveryStateStore` + rollup writer, SQS delivery source for Dispatcher, then host wiring.
+
 ### 2026-10-21 Documentation upkeep (D-1..D-4)
 - **Status:** in progress
 - **Why:** Owner (architect) wants docs that explain the whole flow, updated with every task, tracked automatically.
