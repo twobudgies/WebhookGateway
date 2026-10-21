@@ -49,8 +49,25 @@ public static class IpAddressPolicy
         return address.AddressFamily != AddressFamily.InterNetworkV6
             || address.Equals(IPAddress.IPv6None)
             || address.IsIPv6LinkLocal
-            || address.IsIPv6Multicast;
+            || address.IsIPv6Multicast
+            || address.Equals(AwsMetadataIPv6);
     }
+
+    /// <summary>The AWS instance metadata service on IPv6. It sits in the unique-local range that private installs allow, so it is listed explicitly.</summary>
+    private static readonly IPAddress AwsMetadataIPv6 = IPAddress.Parse("fd00:ec2::254");
+
+    /// <summary>Host names of cloud metadata services. They are refused when an endpoint is saved, in every mode.</summary>
+    public static bool IsMetadataHostName(string host) =>
+        MetadataHostNames.Contains(host.TrimEnd('.'));
+
+    private static readonly HashSet<string> MetadataHostNames = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "metadata",
+        "metadata.google.internal",
+        "metadata.goog",
+        "instance-data",
+        "instance-data.ec2.internal",
+    };
 
     private static bool IsBlockedV4(byte[] b)
     {
