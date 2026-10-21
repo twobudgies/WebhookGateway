@@ -27,3 +27,11 @@ dev-up:
 
 dev-down:
 	./scripts/dev-down.sh
+
+# Build the container image of every service (needs Docker). Tag = webhookgateway-<service>:dev
+images:
+	for p in Ingest FanOut Dispatcher ControlPlane Migrator; do \
+		docker build --build-arg PROJECT=$$p -t webhookgateway-$$(echo $$p | tr A-Z a-z):dev . || exit 1; \
+	done
+
+.PHONY: images
