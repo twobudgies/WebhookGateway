@@ -114,4 +114,31 @@ public sealed class SqsAdapterTests
         var body = Assert.Single(later.Messages!).Body;
         Assert.Equal(message.DeliveryId, ContractJson.Deserialize<DeliveryMessage>(body).DeliveryId);
     }
+
+    [Fact]
+    public async Task Delivery_published_is_received_by_tier_and_acknowledged()
+    {
+        var queues = await ConnectAsync("deliveries-premium");
+        if (queues is null)
+        {
+            return;
+        }
+
+        await queues.Client.PurgeQueueAsync(await queues.UrlAsync("deliveries-premium", CancellationToken.None));
+        var eventId = EventId.New();
+        var endpointId = EndpointId.New();
+        var now = DateTimeOffset.UtcNow;
+        var message = new DeliveryMessage(
+            DeliveryMessage.CurrentSchemaVersion, TenantId.New(), eventId, DeliveryId.For(eventId, endpointId), endpointId,
+            "order.created", now, 1, now, now, JsonDocument.Parse("""{"a":1}""").RootElement.Clone(), null);
+        await new SqsDeliveryPublisher(queues).PublishAsync(PlanTier.Premium, [message], CancellationToken.None);
+        var source = new SqsDeliverySource(queues, NullLogger<SqsDeliverySource>.Instance, waitSeconds: 1);
+
+        var received = await source.ReceiveAsync(PlanTier.Premium, 10, CancellationToken.None);
+
+        var one = Assert.Single(received);
+        Assert.Equal(message.DeliveryId, one.Message.DeliveryId);
+        await source.AcknowledgeAsync(PlanTier.Premium, one, CancellationToken.None);
+        Assert.Empty(await source.ReceiveAsync(PlanTier.Premium, 10, CancellationToken.None));
+    }
 }
