@@ -62,7 +62,7 @@ No component logs yet. Sink decided: CloudWatch Logs, 14 days (D32, `logging.md`
 | ID | Item | Size | Notes | Depends on |
 |---|---|---|---|---|
 | L-1 | Logging standard: structured JSON via `ILogger`, field names, levels, correlation id (W3C trace id), redaction rules, sampling of success logs; document in `docs/logging.md` | S | done: `docs/logging.md`, D32 | |
-| L-2 | Host setup shared by all services: JSON console formatter, enrich with service/version/environment, request logging middleware in Ingest and ControlPlane | M | | L-1 |
+| L-2 | Host setup shared by all services: JSON console formatter, enrich with service/version/environment, request logging middleware in Ingest and ControlPlane | M | done: `src/Hosting` `AddStructuredJsonConsole` in all four services (request logging is ASP.NET Core's built-in Information log) | L-1 |
 | L-3 | Backfill Ingest (P1-3): auth failures, validation rejects, rate-limit/quota rejects, publish failures (5xx), accepted (sampled) | M | | L-2 |
 | L-4 | Backfill Fan-out (P1-5): batch received, no subscription match, archive write failure, delivery publish failure, ack failure, poison/deserialize failure | M | | L-2 |
 | L-5 | Backfill Dispatcher (P1-6, P1-7): attempt outcome with status/latency/error class, SSRF block, retry scheduled, exhausted/expired, circuit breaker open/close, signing failure | M | | L-2 |

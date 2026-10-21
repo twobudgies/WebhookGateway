@@ -18,6 +18,9 @@
   <Folder Name="/src/FanOut/">
     <Project Path="src/FanOut/WebhookGateway.FanOut.csproj" />
   </Folder>
+  <Folder Name="/src/Hosting/">
+    <Project Path="src/Hosting/WebhookGateway.Hosting.csproj" />
+  </Folder>
   <Folder Name="/src/Ingest/">
     <Project Path="src/Ingest/WebhookGateway.Ingest.csproj" />
   </Folder>

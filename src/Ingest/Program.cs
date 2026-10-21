@@ -1,9 +1,11 @@
+using WebhookGateway.Hosting;
 using WebhookGateway.Ingest.Api;
 using WebhookGateway.Ingest.Limits;
 using WebhookGateway.Ingest.Publishing;
 using WebhookGateway.Ingest.Tenancy;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Logging.AddStructuredJsonConsole();
 
 builder.Services.Configure<ConfigApiKeyOptions>(builder.Configuration.GetSection(ConfigApiKeyOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);

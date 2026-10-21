@@ -31,7 +31,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Resume from:** see the next entry (roadmap execution).
 
 ### 2026-10-21 Application logging gap
-- **Status:** in progress (sink decided: D32; L-1 done)
+- **Status:** in progress (sink decided: D32; L-1, L-2 done in PR; next L-3..L-7 backfill)
 - **Why:** Owner noticed no component logs anything; needed to debug where code breaks.
 - **Done:** added L-1..L-10 to `docs/roadmap.md` (standard, host setup, backfill per finished component, hygiene tests, sink); rule added to `CLAUDE.md`. SQS adapters PR #21 merged.
 - **Proposed sink:** CloudWatch Logs (7-14 day retention, Logs Insights) plus S3 export for cheap long retention; no Elasticsearch/OpenSearch at launch (fixed cost well above the budget). Needs owner answer, then record as a decision.
