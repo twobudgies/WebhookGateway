@@ -37,7 +37,7 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Resume from:** see the next entry (roadmap execution).
 
 ### 2026-10-21 Config database (P1-2) - PR open, waiting for the owner's review
-- **Status:** blocked on the owner's approval of the PR (this is the `database.md` final review)
+- **Status:** done: approved by the owner and merged (D44)
 - **Outcome:** `db/migrations/0001..0002`, `src/Postgres` (MigrationRunner, PostgresApiKeyStore, PostgresSubscriptionStore), `src/Migrator`, wiring when `Postgres:ConnectionString` is set, `dev-up.sh` runs migrations, tests against local Postgres. D43 resolves the open review items.
 - **Do not merge until the owner approves.** After approval set `database.md` to `Final v1` and log it.
 - **Resume from:** ControlPlane API (P2-1) with KMS envelope encryption for endpoint secrets, `PostgresEndpointStore`, then the portal read API; meanwhile P1-8/P1-9 pacing and connection permits.
