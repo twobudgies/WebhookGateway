@@ -82,6 +82,9 @@ public sealed class SqsAdapterTests
             return;
         }
 
+        var queueUrl = await queues.UrlAsync("deliveries-basic", CancellationToken.None);
+        await queues.Client.PurgeQueueAsync(queueUrl);
+
         var eventId = EventId.New();
         var endpointId = EndpointId.New();
         var now = DateTimeOffset.UtcNow;
