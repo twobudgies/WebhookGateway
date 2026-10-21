@@ -3,7 +3,7 @@ using WebhookGateway.Contracts.Ids;
 
 namespace WebhookGateway.Dispatcher.Delivery;
 
-public sealed class InMemoryDeliveryStateStore : IDeliveryStateStore
+public sealed class InMemoryDeliveryStateStore : IDeliveryStateStore, IDueDeliveryIndex
 {
     private readonly ConcurrentDictionary<(TenantId, DeliveryId), DeliveryStateRecord> _rows = new();
 
@@ -24,4 +24,8 @@ public sealed class InMemoryDeliveryStateStore : IDeliveryStateStore
         _rows.TryRemove((tenantId, deliveryId), out _);
         return ValueTask.CompletedTask;
     }
+
+    public ValueTask<IReadOnlyList<DeliveryStateRecord>> GetDueAsync(DateTimeOffset now, int limit, CancellationToken cancellationToken) =>
+        ValueTask.FromResult<IReadOnlyList<DeliveryStateRecord>>(
+            [.. _rows.Values.Where(r => r.Status == WebhookGateway.Contracts.DeliveryStatus.Scheduled && r.NextAttemptAt <= now).Take(limit)]);
 }

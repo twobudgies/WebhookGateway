@@ -23,7 +23,8 @@ public sealed record DeliveryStateRecord(
     JsonElement? Payload,
     string? PayloadRef,
     DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt)
+    DateTimeOffset UpdatedAt,
+    PlanTier Tier)
 {
     /// <summary>No further attempts will be made.</summary>
     public bool IsFinal => Status is DeliveryStatus.Failed or DeliveryStatus.Exhausted or DeliveryStatus.Expired;

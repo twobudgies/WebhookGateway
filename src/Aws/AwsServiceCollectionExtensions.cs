@@ -55,7 +55,9 @@ public static class AwsServiceCollectionExtensions
         services.Replace(ServiceDescriptor.Singleton<IDeliverySource, SqsDeliverySource>());
         services.Replace(ServiceDescriptor.Singleton<IRetryPublisher, SqsDeliveryPublisher>());
         services.Replace(ServiceDescriptor.Singleton<IPayloadResolver, S3PayloadResolver>());
-        services.Replace(ServiceDescriptor.Singleton<IDeliveryStateStore, DynamoDbDeliveryStateStore>());
+        services.TryAddSingleton<DynamoDbDeliveryStateStore>();
+        services.Replace(ServiceDescriptor.Singleton<IDeliveryStateStore>(sp => sp.GetRequiredService<DynamoDbDeliveryStateStore>()));
+        services.Replace(ServiceDescriptor.Singleton<IDueDeliveryIndex>(sp => sp.GetRequiredService<DynamoDbDeliveryStateStore>()));
         return services;
     }
 
