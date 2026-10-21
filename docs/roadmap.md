@@ -55,6 +55,23 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P4-1 | Orchestrator (`webhookgateway-orchestrator`), per `orchestrator-spec.md`; owner approval of that spec needed first | L+ | risky | P0-3 |
 | P4-2 | Stage 2 swaps from `architecture.md` section 10, each when its trigger fires | per item | risky | P3-4 |
 
+## Cross-cutting: application logging (added 2026-10-21)
+
+No component logs yet. Sink decision pending (proposed: CloudWatch Logs, S3 export for long retention; see worklog). Rule from now on: **every new work item includes its logging** (see `CLAUDE.md`). Never log secrets, API keys, signing secrets or payload bodies; always carry `tenantId`, `eventId`, `deliveryId`, `endpointId`, `attempt` and a correlation id where known.
+
+| ID | Item | Size | Notes | Depends on |
+|---|---|---|---|---|
+| L-1 | Logging standard: structured JSON via `ILogger`, field names, levels, correlation id (W3C trace id), redaction rules, sampling of success logs; document in `docs/logging.md` | S | decision on sink first | |
+| L-2 | Host setup shared by all services: JSON console formatter, enrich with service/version/environment, request logging middleware in Ingest and ControlPlane | M | | L-1 |
+| L-3 | Backfill Ingest (P1-3): auth failures, validation rejects, rate-limit/quota rejects, publish failures (5xx), accepted (sampled) | M | | L-2 |
+| L-4 | Backfill Fan-out (P1-5): batch received, no subscription match, archive write failure, delivery publish failure, ack failure, poison/deserialize failure | M | | L-2 |
+| L-5 | Backfill Dispatcher (P1-6, P1-7): attempt outcome with status/latency/error class, SSRF block, retry scheduled, exhausted/expired, circuit breaker open/close, signing failure | M | | L-2 |
+| L-6 | Backfill Core rollups (P1-10): flush failures, dropped counters | S | | L-2 |
+| L-7 | Backfill SQS adapters (`src/Aws`): batch partial failure, receive/delete errors, queue URL resolution failure | S | | L-2 |
+| L-8 | Log hygiene tests: no secrets/payloads in log output | S | | L-3..L-5 |
+| L-9 | Sink: ship logs to the chosen store, retention, a saved query set for debugging by eventId/deliveryId (cloud, needs owner go-ahead) | M | aws | P3-2, sink decision |
+| L-10 | Local dev: logs readable in the console with the same fields | S | | L-2 |
+
 ## Order and open owner items
 
 Start with P0-2, P0-4 and P1-1 (no cost, no approval needed), then P1-2 once the owner has done the final review of `database.md`. The plan numbers in `tenancy-and-limits.md` are provisional but only needed at seed time (P1-2), so they do not block the first items. Nothing in Phase 3 starts without the owner's go-ahead.

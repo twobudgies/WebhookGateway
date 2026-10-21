@@ -30,8 +30,15 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Application logging gap
+- **Status:** blocked on owner (log sink choice)
+- **Why:** Owner noticed no component logs anything; needed to debug where code breaks.
+- **Done:** added L-1..L-10 to `docs/roadmap.md` (standard, host setup, backfill per finished component, hygiene tests, sink); rule added to `CLAUDE.md`. SQS adapters PR #21 merged.
+- **Proposed sink:** CloudWatch Logs (7-14 day retention, Logs Insights) plus S3 export for cheap long retention; no Elasticsearch/OpenSearch at launch (fixed cost well above the budget). Needs owner answer, then record as a decision.
+- **Resume from:** after the sink answer: L-1 (`docs/logging.md`), L-2, then backfill L-3..L-7. S3 archive / DynamoDB adapters continue after.
+
 ### 2026-10-21 SQS adapters (src/Aws)
-- **Status:** PR open
+- **Status:** done (PR #21 merged)
 - **Why:** Roadmap: replace in-memory ports with AWS-backed ones.
 - **Outcome:** new `WebhookGateway.Aws` project: `SqsEventPublisher` (Ingest), `SqsEventSource` (Fan-out), `SqsDeliveryPublisher` (Fan-out first attempt + Dispatcher retry with `DelaySeconds`, clamped 0-15 min). Integration tests run against Moto and skip when it is not up. Gotcha: AWSSDK v4 returns null `Messages` on an empty receive.
 - **Resume from:** S3 `IEventArchive`, DynamoDB `IDeliveryStateStore` + rollups, SQS delivery source for Dispatcher, then host wiring (DI) and P1-4 Valkey.
