@@ -30,6 +30,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Local dev environment verified (P0-4)
+- **Status:** PR open
+- **Why:** Docker unblocked; `feature/local-dev-environment` was unverified.
+- **Outcome:** removed wedged containers; `./scripts/dev-up.sh` brings up PostgreSQL, Valkey, Moto and creates queues, tables, bucket, KMS key; second run is idempotent; `make verify` passes (183 unit, 18 integration). Note: old `elasticmq` compose service is gone, SQS is Moto only.
+- **Resume from:** after merge, AWS-backed adapters (SQS/DynamoDB/S3) against Moto, then P1-4 Valkey limiter/idempotency/quota.
+
 ### 2026-10-20 Roadmap execution (Phase 0 and 1, offline parts)
 - **Status:** offline work merged to `main`; waiting on the owner for Docker; next steps below
 - **Why:** Approved roadmap in `docs/roadmap.md`. Owner role: decide implementation myself, discuss only architecture-level. Owner reviewed PR #10 and #14 comments and then said to merge.
