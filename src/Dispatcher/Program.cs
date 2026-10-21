@@ -8,6 +8,7 @@ using WebhookGateway.Dispatcher.Retry;
 using WebhookGateway.Dispatcher.Source;
 using WebhookGateway.Hosting;
 using WebhookGateway.Postgres;
+using WebhookGateway.Postgres.Backend;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddStructuredJsonConsole("Dispatcher");
@@ -36,12 +37,20 @@ if (builder.Configuration.UsePostgres())
 
 // The consumer needs the queues, the archive and delivery_state, so it only runs with Backend:Mode=Aws
 // (Moto locally, see dev/README.md). The retry scheduler and the rollup flusher run next to it.
-if (builder.Configuration.UseAws())
+if (builder.Configuration.UseAws() || builder.Configuration.UsePostgresBackend())
 {
     builder.Services.Configure<DeliveryOptions>(builder.Configuration.GetSection(DeliveryOptions.SectionName));
     builder.Services.Configure<DeliveryConsumerOptions>(builder.Configuration.GetSection(DeliveryConsumerOptions.SectionName));
-    builder.Services.AddAwsDispatcher(builder.Configuration);
-    builder.Services.AddAwsRollups(builder.Configuration);
+    if (builder.Configuration.UseAws())
+    {
+        builder.Services.AddAwsDispatcher(builder.Configuration);
+        builder.Services.AddAwsRollups(builder.Configuration);
+    }
+    else
+    {
+        builder.Services.AddPostgresDispatcher(builder.Configuration);
+    }
+
     builder.Services.Configure<RollupFlusherOptions>(builder.Configuration.GetSection(RollupFlusherOptions.SectionName));
     builder.Services.AddHostedService<RollupFlusher>();
     builder.Services.AddSingleton<DeliveryProcessor>();
@@ -53,5 +62,5 @@ if (builder.Configuration.UseAws())
 
 var host = builder.Build();
 host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup")
-    .LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : "InMemory (no queue consumer)");
+    .LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : builder.Configuration.UsePostgresBackend() ? "Postgres" : "InMemory (no queue consumer)");
 host.Run();

@@ -4,6 +4,10 @@ Status: **living document**, kept in step with the code (rule in `CLAUDE.md`, it
 
 Last verified against the code: **2026-10-21** (after the ControlPlane API). The whole path is proven by one test, `tests/IntegrationTests/Aws/PipelineEndToEndTests.cs`: tenant, key and endpoint in PostgreSQL, event posted to Ingest, SQS, Fan-out with S3 archive and routing from the config database, delivery queue, Dispatcher loading the endpoint and its decrypted secret. It uses the local stack (`./scripts/dev-up.sh`); the final HTTP call is a recording sender because loopback targets are blocked by design.
 
+## Backends
+
+The same services run on three backends, selected by `Backend:Mode` (`docs/configuration.md`): `InMemory` (tests, nothing durable), **`Postgres`** (self-host: queues, delivery state, rollups, archive, idempotency and the monthly count all in PostgreSQL, D53/D54; no AWS) and `Aws` (SQS, DynamoDB, S3, KMS; the scale path). The step table below names the AWS adapter files; the PostgreSQL equivalents are in `src/Postgres/Backend`.
+
 ## The path of one event
 
 ```

@@ -8,6 +8,7 @@ using WebhookGateway.FanOut.Routing;
 using WebhookGateway.FanOut.Source;
 using WebhookGateway.Hosting;
 using WebhookGateway.Postgres;
+using WebhookGateway.Postgres.Backend;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddStructuredJsonConsole("FanOut");
@@ -37,7 +38,14 @@ if (builder.Configuration.UseAws())
     builder.Services.AddHostedService<RollupFlusher>();
 }
 
+if (builder.Configuration.UsePostgresBackend())
+{
+    builder.Services.AddPostgresFanOut(builder.Configuration);
+    builder.Services.Configure<RollupFlusherOptions>(builder.Configuration.GetSection(RollupFlusherOptions.SectionName));
+    builder.Services.AddHostedService<RollupFlusher>();
+}
+
 var host = builder.Build();
 host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup")
-    .LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : "InMemory");
+    .LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : builder.Configuration.UsePostgresBackend() ? "Postgres" : "InMemory");
 host.Run();

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 
 namespace WebhookGateway.Postgres;
@@ -17,7 +18,7 @@ public static class PostgresServiceCollectionExtensions
     {
         services.Configure<PostgresOptions>(configuration.GetSection(PostgresOptions.SectionName));
         var connectionString = configuration[$"{PostgresOptions.SectionName}:ConnectionString"]!;
-        services.AddSingleton(_ => new NpgsqlDataSourceBuilder(connectionString).Build());
+        services.TryAddSingleton(_ => new NpgsqlDataSourceBuilder(connectionString).Build());
         return services;
     }
 }
