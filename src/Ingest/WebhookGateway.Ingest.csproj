@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <ProjectReference Include="..\Hosting\WebhookGateway.Hosting.csproj" />
+    <ProjectReference Include="..\Aws\WebhookGateway.Aws.csproj" />
     <ProjectReference Include="..\Abstractions\WebhookGateway.Abstractions.csproj" />
     <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
   </ItemGroup>

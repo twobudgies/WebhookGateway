@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Host wiring
+- **Status:** PR open
+- **Outcome:** `Backend:Mode=Aws` switch (D39) with `AddAwsIngest/FanOut/Dispatcher`; Dispatcher host now runs the delivery consumer in Aws mode; startup log line states the mode; Moto integration test proves Ingest to the `events` queue.
+- **Gap for launch:** subscriptions and endpoints still in-memory. Next: config database stores (needs the owner's final review of `database.md`, gates P1-2), then ControlPlane (P2-1) so tenants can create endpoints.
+- **Resume from:** retry scheduler loop (gsi3), rollup flush loop, Valkey (P1-4); in parallel remind the owner about `database.md`.
+
 ### 2026-10-21 Abstractions project, component field in logs
 - **Status:** PR open
 - **Why:** hosts could not reference `src/Aws` (circular), needed before wiring; owner asked for a `component` in every log line.
