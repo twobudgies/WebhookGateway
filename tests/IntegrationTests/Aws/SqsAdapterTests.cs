@@ -10,6 +10,7 @@ using WebhookGateway.Contracts.Messages;
 namespace WebhookGateway.IntegrationTests.Aws;
 
 /// <summary>Needs the local stack (<c>./scripts/dev-up.sh</c>); skipped when Moto is not reachable.</summary>
+[Collection("moto-queues")]
 public sealed class SqsAdapterTests
 {
     private static readonly Uri Moto = new("http://localhost:5050");

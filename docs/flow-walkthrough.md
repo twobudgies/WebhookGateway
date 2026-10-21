@@ -2,7 +2,7 @@
 
 Status: **living document**, kept in step with the code (rule in `CLAUDE.md`, items D-1..D-4 in `roadmap.md`). Written for the architect and new developers: follow one event from the producer to the subscriber, and see what exists in code today. Design reasons are in `architecture.md`; message shapes in `contracts.md` and `data-plane.md`; log rules in `logging.md`.
 
-Last verified against the code: **2026-10-21** (after the logging backfill).
+Last verified against the code: **2026-10-21** (after the ControlPlane API). The whole path is proven by one test, `tests/IntegrationTests/Aws/PipelineEndToEndTests.cs`: tenant, key and endpoint in PostgreSQL, event posted to Ingest, SQS, Fan-out with S3 archive and routing from the config database, delivery queue, Dispatcher loading the endpoint and its decrypted secret. It uses the local stack (`./scripts/dev-up.sh`); the final HTTP call is a recording sender because loopback targets are blocked by design.
 
 ## The path of one event
 

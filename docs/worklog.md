@@ -36,6 +36,11 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 End-to-end pipeline test
+- **Status:** PR open
+- **Outcome:** `PipelineEndToEndTests` proves Ingest -> SQS -> Fan-out (S3, Postgres routing) -> SQS -> Dispatcher (endpoint + decrypted secret) with real adapters on the local stack. The Moto-queue tests share one xunit collection so they do not race on queue names.
+- **Resume from:** deployment prep: Dockerfiles for the four services, health/readiness, config via environment, CI image build; CDK stacks (P3) need the owner's AWS account decisions and go-ahead. Also: staging load test (LT items), `usage_monthly` flusher, endpoint secret rotation, portal.
+
 ### 2026-10-21 ControlPlane admin API (P2-1)
 - **Status:** PR open
 - **Outcome:** `/admin/v1` (tenants, API keys, endpoints, subscriptions), EF Core on the existing tables, admin key auth, plan caps, SSRF URL check, one-time secret/key display, logs for every change; `docs/admin-api.md`; 8 integration tests on real Postgres. D46.
