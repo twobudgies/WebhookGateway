@@ -55,6 +55,41 @@ Status: **v1 (2026-10-20)**, derived from the approved architecture v4 (D20-D28)
 | P4-1 | Orchestrator (`webhookgateway-orchestrator`), per `orchestrator-spec.md`; owner approval of that spec needed first | L+ | risky | P0-3 |
 | P4-2 | Stage 2 swaps from `architecture.md` section 10, each when its trigger fires | per item | risky | P3-4 |
 
+## Phase 5: developer site, docs and purchase (added 2026-10-21, built last)
+
+Owner request: one website where developers learn the product and where customers buy a plan. Done **after** everything else works, but tracked now. Lives in its own repo (`webhookgateway-site`, to create) like the portal (D27); the OpenAPI document published from this repo is its source of truth for the API reference, so docs cannot drift from the code (rule D-3).
+
+| ID | Work item | Size | Notes | Depends |
+|---|---|---|---|---|
+| S-1 | **Site shell:** docs website with a left side menu, sub-menus, search, previous/next, version selector, dark/light theme, mobile layout, copy buttons on every code block; choose the framework (Docusaurus, Nextra or custom React; decision recorded when started) | M | | P2-4 |
+| S-2 | **Getting started:** what the product is, create account, get an API key, send the first event in 5 minutes, receive it, verify the signature | M | | S-1, P2-1 |
+| S-3 | **Concepts:** events, endpoints, subscriptions, deliveries, retries and retry windows per plan, idempotency, ordering and at-least-once, rate limits, payload size, replay, plans | M | derive from `architecture.md` and `tenancy-and-limits.md` | S-1 |
+| S-4 | **API reference** generated from OpenAPI (`/v1/events`, `/portal/v1`), with request/response examples and every error code | M | needs P0-5 (OpenAPI generation) | S-1 |
+| S-5 | **Sample code in every language, tested in CI:** C#, Java, PHP, Python, Node.js (JS/TS), Go, Ruby, plus plain cURL. Each shows: send an event, handle the `429`/`503` with backoff, use an idempotency key, and **verify the webhook signature on the receiving side** (Standard Webhooks) with a minimal receiver. Language tabs remember the reader's choice | L | each snippet is compiled/run in CI against the local stack so it never rots | S-2 |
+| S-6 | **Interactive pieces:** "Try it" request console with the reader's test key, live signature verifier (paste a payload, secret and headers), event type / payload builder, delivery simulator that shows a retry timeline for the chosen plan, copy-paste snippets that fill in the reader's own key | L | uses a sandbox tenant, never production data | S-4 |
+| S-7 | **Guides:** receiving webhooks safely (HTTPS, signature check, replay protection with the timestamp, fast 2xx, queue and process later), handling retries and duplicates, testing locally with a tunnel, going to production checklist, migration from other providers | M | | S-3 |
+| S-8 | **Security & trust page (accurate!):** what is encrypted and where (see "Encryption claims" below), SSRF protection, signing, key handling, data residency (`ap-south-1`), retention, sub-processors, incident contact, status page | M | claims reviewed against the code before publishing | S-1 |
+| S-9 | **Pricing page and purchase flow:** plan comparison from the `plans` data, sign up, pick a plan, pay, receive the API key; upgrade/downgrade/cancel; invoices and tax (GST) | L | needs the payment provider decision (Razorpay or Stripe, India-friendly) and the pricing numbers (D42); a billing/subscription service is its own work: webhooks from the provider to the ControlPlane to change plans | S-1, P2-3 |
+| S-10 | **Self-service signup in ControlPlane** replacing operator-created tenants (v1 is operator-only, D46), email verification, abuse controls | L | risky (auth) | P2-3 |
+| S-11 | **Changelog, status page, support/contact, API versioning and deprecation policy** | S | | S-1 |
+| S-12 | **Docs quality gates in CI:** link check, snippets compile and run, OpenAPI diff fails the build if the reference is stale, spell check | M | | S-4, S-5 |
+| S-13 | **Hosting:** CloudFront + S3 (as the portal), custom domain, TLS | S | needs the domain and the owner's AWS go-ahead | P3-1 |
+
+### Encryption claims (what we may say, and what we must not)
+
+Customers must be able to trust what the site says, so the page states only what the system does. Today and planned:
+
+- **In transit:** HTTPS/TLS 1.2+ for the API and for every delivery to the customer's endpoint (https is required, D46). Inside AWS, calls to SQS, S3, DynamoDB and KMS use TLS.
+- **At rest:** SQS (KMS), S3 archive (KMS), DynamoDB (AWS-managed or KMS), RDS PostgreSQL (encrypted volume), Valkey (encrypted at rest and in transit). Endpoint signing secrets use envelope encryption with a per-secret KMS data key (D45) and API keys are stored only as SHA-256 hashes.
+- **Authenticity of deliveries:** every webhook is signed (HMAC, Standard Webhooks) so the receiver can prove it came from us and was not altered.
+- **Not "end-to-end encrypted" in the strict sense:** the service must read an event to route and deliver it, so it is encrypted in transit and at rest but not hidden from the platform. We will **not** use the words "end-to-end encrypted" unless we build it.
+- **Optional, to decide:** customer-held payload encryption (the sender encrypts the `data` field with the receiver's public key, we route without being able to read it). That would be a real end-to-end option for sensitive customers; tracked as S-14.
+
+| ID | Work item | Size | Notes | Depends |
+|---|---|---|---|---|
+| S-14 | Optional payload-level end-to-end encryption (envelope, customer key pair, SDK helpers in each language, docs). Needs an architecture decision first because it limits replay, search and transformation | L | architecture decision with the owner | S-8 |
+| S-15 | Review the encryption settings of every AWS resource in the infrastructure code (P3-1) against the claims on the security page; fail the build if a resource is unencrypted | S | | P3-1 |
+
 ## Cross-cutting: application logging (added 2026-10-21)
 
 No component logs yet. Sink decided: CloudWatch Logs, 14 days (D32, `logging.md`). Rule from now on: **every new work item includes its logging** (see `CLAUDE.md`). Never log secrets, API keys, signing secrets or payload bodies; always carry `tenantId`, `eventId`, `deliveryId`, `endpointId`, `attempt` and a correlation id where known.

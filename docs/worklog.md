@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Developer site and purchase flow (planned, built last)
+- **Status:** planned (todo only), D47
+- **Why:** Owner wants a docs website (side menu, sub-menus, interactive, samples in C#/Java/PHP/Python/others, getting-started, security page) where customers also buy a plan; wants customers to trust the encryption.
+- **Done now:** roadmap Phase 5 (S-1..S-15) and the "Encryption claims" section; D47.
+- **Resume from:** nothing to do until the product is feature-complete; start with S-1/S-2. Decisions needed then: framework, payment provider, prices, domain.
+
 ### 2026-10-21 Container images and configuration reference
 - **Status:** PR open
 - **Outcome:** one parameterised `Dockerfile` (non-root, port 8080), `make images`, `docs/configuration.md` (all keys, IAM needs). Ingest image verified (`/healthz` 200) and Dispatcher image starts with structured logs.
