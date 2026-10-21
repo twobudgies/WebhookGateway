@@ -53,6 +53,7 @@ Fill these in as the design firms up. Until then, treat missing information as u
 
 ## Rules for maintaining this repo
 
+- **Every work item includes its application logging** (structured, no secrets or payload bodies, ids as fields). Items finished before 2026-10-21 are backfilled under L-3..L-7 in `docs/roadmap.md`.
 - Anything used by more than one component (schemas, naming, retry/audit semantics) is defined **here first**, then implemented in the components. Contract change plus consumers can ship in one PR.
 - If a change in one component alters a contract, update `docs/contracts.md` in the same piece of work.
 - Record non-obvious design choices in `docs/decisions.md` with the reason.
