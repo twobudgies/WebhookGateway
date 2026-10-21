@@ -1,4 +1,5 @@
 using WebhookGateway.Aws;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.FanOut;
 using WebhookGateway.FanOut.Archive;
 using WebhookGateway.FanOut.Delivery;
@@ -12,6 +13,7 @@ builder.Logging.AddStructuredJsonConsole("FanOut");
 
 // In-memory implementations until the AWS-backed ones are verified against emulators (roadmap P1-5b).
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<RollupAccumulator>();
 builder.Services.AddSingleton<ISubscriptionStore, InMemorySubscriptionStore>();
 builder.Services.AddSingleton<IEventArchive, InMemoryEventArchive>();
 builder.Services.AddSingleton<IDeliveryPublisher, InMemoryDeliveryPublisher>();
@@ -23,6 +25,9 @@ builder.Services.AddHostedService(sp => sp.GetRequiredService<EventConsumer>());
 if (builder.Configuration.UseAws())
 {
     builder.Services.AddAwsFanOut(builder.Configuration);
+    builder.Services.AddAwsRollups(builder.Configuration);
+    builder.Services.Configure<RollupFlusherOptions>(builder.Configuration.GetSection(RollupFlusherOptions.SectionName));
+    builder.Services.AddHostedService<RollupFlusher>();
 }
 
 var host = builder.Build();

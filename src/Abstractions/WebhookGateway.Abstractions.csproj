@@ -3,6 +3,7 @@
     <RootNamespace>WebhookGateway</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Core\WebhookGateway.Core.csproj" />
     <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
   </ItemGroup>
 </Project>

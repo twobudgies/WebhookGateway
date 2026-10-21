@@ -109,7 +109,7 @@ public sealed class DynamoDbTests
         for (var flush = 0; flush < 2; flush++)
         {
             accumulator.RecordAttempt(new AttemptSample(tenant, endpoint, DeliveryOutcome.Succeeded, 10, 40, false, Now));
-            await writer.WriteAsync(accumulator.Drain(), CancellationToken.None);
+            Assert.Empty(await writer.WriteAsync(accumulator.Drain(), CancellationToken.None));
         }
 
         var item = await dynamo.GetItemAsync(new GetItemRequest

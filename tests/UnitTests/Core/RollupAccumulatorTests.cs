@@ -106,4 +106,20 @@ public sealed class RollupAccumulatorTests
         Assert.Equal(8000, all.Attempts);
         Assert.Equal(8000, all.Succeeded);
     }
+
+    [Fact]
+    public void Restored_rows_come_out_again_exactly_once_without_double_counting_the_tenant_row()
+    {
+        var accumulator = new RollupAccumulator();
+        accumulator.RecordAttempt(Sample(_a, DeliveryOutcome.Succeeded));
+        var drained = accumulator.Drain();
+
+        accumulator.Restore(drained);
+        accumulator.RecordAttempt(Sample(_a, DeliveryOutcome.Succeeded));
+        var next = accumulator.Drain();
+
+        Assert.Equal(2, next.Single(r => r.Key.EndpointKey == _a.Value).Value.Attempts);
+        Assert.Equal(2, next.Single(r => r.Key.EndpointKey == RollupKey.AllEndpoints).Value.Attempts);
+        Assert.Empty(accumulator.Drain());
+    }
 }

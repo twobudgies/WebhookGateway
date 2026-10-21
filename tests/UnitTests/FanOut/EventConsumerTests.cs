@@ -4,6 +4,7 @@ using Microsoft.Extensions.Time.Testing;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.FanOut;
 using WebhookGateway.FanOut.Archive;
 using WebhookGateway.FanOut.Delivery;
@@ -22,7 +23,7 @@ public sealed class EventConsumerTests
     private EventConsumer CreateConsumer(IDeliveryPublisher? publisher = null) =>
         new(
             _source,
-            new FanOutProcessor(_subscriptions, new InMemoryEventArchive(), publisher ?? _publisher, new FakeTimeProvider(), NullLogger<FanOutProcessor>.Instance),
+            new FanOutProcessor(_subscriptions, new InMemoryEventArchive(), publisher ?? _publisher, new FakeTimeProvider(), NullLogger<FanOutProcessor>.Instance, new RollupAccumulator()),
             NullLogger<EventConsumer>.Instance);
 
     private EventMessage AddEvent(TenantId tenant)

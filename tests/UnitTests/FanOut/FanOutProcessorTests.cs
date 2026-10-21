@@ -4,6 +4,7 @@ using Microsoft.Extensions.Time.Testing;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Ids;
 using WebhookGateway.Contracts.Messages;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.FanOut.Archive;
 using WebhookGateway.FanOut.Delivery;
 using WebhookGateway.FanOut.Processing;
@@ -15,13 +16,14 @@ public sealed class FanOutProcessorTests
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 20, 10, 0, 0, TimeSpan.Zero);
 
+    private readonly RollupAccumulator _rollups = new();
     private readonly InMemorySubscriptionStore _subscriptions = new();
     private readonly InMemoryEventArchive _archive = new();
     private readonly InMemoryDeliveryPublisher _publisher = new();
     private readonly FanOutProcessor _processor;
 
     public FanOutProcessorTests() =>
-        _processor = new FanOutProcessor(_subscriptions, _archive, _publisher, new FakeTimeProvider(Now), NullLogger<FanOutProcessor>.Instance);
+        _processor = new FanOutProcessor(_subscriptions, _archive, _publisher, new FakeTimeProvider(Now), NullLogger<FanOutProcessor>.Instance, _rollups);
 
     private static EventMessage Event(TenantId tenant, string type = "order.created", string payloadJson = """{"id":1}""") =>
         new(
@@ -60,6 +62,8 @@ public sealed class FanOutProcessorTests
         Assert.Contains(a, endpoints);
         Assert.Contains(b, endpoints);
         Assert.DoesNotContain(other, endpoints);
+        var created = _rollups.Drain();
+        Assert.Equal(2, created.Single(r => r.Key.EndpointKey == RollupKey.AllEndpoints).Value.Created);
     }
 
     [Fact]
@@ -148,7 +152,7 @@ public sealed class FanOutProcessorTests
     public async Task A_failing_archive_prevents_any_publish()
     {
         var tenant = Tenant(PlanTier.Basic, (EndpointId.New(), "*"));
-        var processor = new FanOutProcessor(_subscriptions, new ThrowingArchive(), _publisher, new FakeTimeProvider(Now), NullLogger<FanOutProcessor>.Instance);
+        var processor = new FanOutProcessor(_subscriptions, new ThrowingArchive(), _publisher, new FakeTimeProvider(Now), NullLogger<FanOutProcessor>.Instance, _rollups);
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await processor.ProcessAsync([Event(tenant)], CancellationToken.None));

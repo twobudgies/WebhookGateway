@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using WebhookGateway.Contracts;
 using WebhookGateway.Contracts.Messages;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.Dispatcher.Endpoints;
 using WebhookGateway.Dispatcher.Outbound;
 using WebhookGateway.Dispatcher.Retry;
@@ -21,7 +22,8 @@ public sealed partial class DeliveryProcessor(
     RetryPolicy retryPolicy,
     TimeProvider clock,
     IOptions<DeliveryOptions> options,
-    ILogger<DeliveryProcessor> logger) : IDeliveryProcessor
+    ILogger<DeliveryProcessor> logger,
+    RollupAccumulator rollups) : IDeliveryProcessor
 {
     private readonly DeliveryOptions _options = options.Value;
 
@@ -58,10 +60,12 @@ public sealed partial class DeliveryProcessor(
         }
 
         var result = await sender.SendAsync(target, message, payload.Value, cancellationToken).ConfigureAwait(false);
+        var queueWaitMs = (long)Math.Max(0, (now - message.NotBefore).TotalMilliseconds);
 
         switch (result.Outcome)
         {
             case SendOutcome.Succeeded:
+                Count(message, DeliveryOutcome.Succeeded, result, queueWaitMs, now);
                 if (message.Attempt > 1)
                 {
                     LogDeliveredAfterRetry(logger, message.TenantId.Value, message.DeliveryId.Value, message.EndpointId.Value, message.Attempt);
@@ -72,11 +76,12 @@ public sealed partial class DeliveryProcessor(
                 return DeliveryAction.Delivered;
 
             case SendOutcome.Failed:
+                Count(message, DeliveryOutcome.Failed, result, queueWaitMs, now);
                 await RecordAsync(message, tier, DeliveryStatus.Failed, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
                 return DeliveryAction.Failed;
 
             default:
-                return await HandleRetryAsync(message, tier, result, now, cancellationToken).ConfigureAwait(false);
+                return await HandleRetryAsync(message, tier, result, queueWaitMs, now, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -84,16 +89,19 @@ public sealed partial class DeliveryProcessor(
         DeliveryMessage message,
         PlanTier tier,
         SendResult result,
+        long queueWaitMs,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
         var delay = retryPolicy.NextDelay(tier, message.Attempt, result.RetryAfter);
         if (delay is null)
         {
+            Count(message, DeliveryOutcome.Exhausted, result, queueWaitMs, now);
             await RecordAsync(message, tier, DeliveryStatus.Exhausted, null, result.StatusCode, result.Error, now, cancellationToken).ConfigureAwait(false);
             return DeliveryAction.Exhausted;
         }
 
+        Count(message, DeliveryOutcome.Retry, result, queueWaitMs, now);
         var nextAttemptAt = now + delay.Value;
         if (delay.Value > _options.MaxQueueDelay)
         {
@@ -106,6 +114,16 @@ public sealed partial class DeliveryProcessor(
         await retries.PublishAsync(tier, NextAttempt(message, nextAttemptAt), delay.Value, cancellationToken).ConfigureAwait(false);
         return DeliveryAction.RetryQueued;
     }
+
+    private void Count(DeliveryMessage message, DeliveryOutcome outcome, SendResult result, long queueWaitMs, DateTimeOffset now) =>
+        rollups.RecordAttempt(new AttemptSample(
+            message.TenantId,
+            message.EndpointId,
+            outcome,
+            queueWaitMs,
+            result.ResponseMs,
+            result.Error == "timeout",
+            now));
 
     /// <summary>The message for the following attempt; the scheduler uses the same shape for long waits.</summary>
     public static DeliveryMessage NextAttempt(DeliveryMessage message, DateTimeOffset notBefore)

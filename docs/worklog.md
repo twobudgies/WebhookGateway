@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Rollup counting and flushing (P1-10 part)
+- **Status:** PR open
+- **Outcome:** processors feed the accumulator, `RollupFlusher` (Hosting) writes every 10 s, failed rows carried over, wired in Aws mode for Fan-out and Dispatcher; D41.
+- **Not built:** S3 result logs (per attempt, batched), hourly/daily compaction job.
+- **Resume from:** Valkey limiter/idempotency/quota (P1-4), pacing (P1-8), circuit breaker; config stores after `database.md` review.
+
 ### 2026-10-21 Retry scheduler
 - **Status:** PR open
 - **Outcome:** `RetryScheduler` (poll the due index, publish, flip row), `IDueDeliveryIndex`, DynamoDB gsi3 query, `Tier` on `DeliveryStateRecord`, wired in Aws mode; unit + Moto tests. D40 has the reasons.

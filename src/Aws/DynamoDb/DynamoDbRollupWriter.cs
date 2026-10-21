@@ -17,30 +17,41 @@ public sealed partial class DynamoDbRollupWriter(
     IAmazonDynamoDB dynamo,
     TimeProvider clock,
     IOptions<DynamoDbOptions> options,
-    ILogger<DynamoDbRollupWriter> logger)
+    ILogger<DynamoDbRollupWriter> logger) : IRollupWriter
 {
     private readonly DynamoDbOptions _options = options.Value;
 
-    public async ValueTask WriteAsync(IReadOnlyDictionary<RollupKey, RollupRow> rows, CancellationToken cancellationToken)
+    public async ValueTask<IReadOnlyDictionary<RollupKey, RollupRow>> WriteAsync(
+        IReadOnlyDictionary<RollupKey, RollupRow> rows,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(rows);
         var ttl = clock.GetUtcNow().Add(_options.RollupMinuteRetention).ToUnixTimeSeconds();
-        var written = 0;
-        try
+        var failed = new Dictionary<RollupKey, RollupRow>();
+        Exception? lastError = null;
+        foreach (var (key, row) in rows)
         {
-            foreach (var (key, row) in rows)
+            try
             {
                 await dynamo.UpdateItemAsync(BuildUpdate(key, row, ttl), cancellationToken).ConfigureAwait(false);
-                written++;
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                failed[key] = row;
+                lastError = ex;
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+
+        if (lastError is not null)
         {
-            LogFlushFailed(logger, ex, written, rows.Count);
-            throw;
+            LogFlushFailed(logger, lastError, failed.Count, rows.Count);
+        }
+        else
+        {
+            LogFlushed(logger, rows.Count);
         }
 
-        LogFlushed(logger, written);
+        return failed;
     }
 
     private UpdateItemRequest BuildUpdate(RollupKey key, RollupRow row, long ttl)
@@ -95,6 +106,6 @@ public sealed partial class DynamoDbRollupWriter(
     [LoggerMessage(Level = LogLevel.Debug, Message = "Rollups flushed: {RowCount} rows")]
     private static partial void LogFlushed(ILogger logger, int rowCount);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "Rollup flush failed after {Written} of {Total} rows; counters of unwritten rows must be re-added by the caller")]
-    private static partial void LogFlushFailed(ILogger logger, Exception exception, int written, int total);
+    [LoggerMessage(Level = LogLevel.Error, Message = "Rollup flush failed after {Failed} of {Total} rows were not written; they are kept for the next flush")]
+    private static partial void LogFlushFailed(ILogger logger, Exception exception, int failed, int total);
 }

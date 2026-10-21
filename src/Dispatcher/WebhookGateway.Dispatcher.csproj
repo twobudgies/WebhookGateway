@@ -4,6 +4,7 @@
     <ProjectReference Include="..\Hosting\WebhookGateway.Hosting.csproj" />
     <ProjectReference Include="..\Aws\WebhookGateway.Aws.csproj" />
     <ProjectReference Include="..\Abstractions\WebhookGateway.Abstractions.csproj" />
+    <ProjectReference Include="..\Core\WebhookGateway.Core.csproj" />
     <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
   </ItemGroup>
 </Project>

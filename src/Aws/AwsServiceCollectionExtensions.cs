@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using WebhookGateway.Aws.DynamoDb;
 using WebhookGateway.Aws.S3;
 using WebhookGateway.Aws.Sqs;
+using WebhookGateway.Core.Rollups;
 using WebhookGateway.Dispatcher.Delivery;
 using WebhookGateway.Dispatcher.Source;
 using WebhookGateway.FanOut.Archive;
@@ -58,6 +59,15 @@ public static class AwsServiceCollectionExtensions
         services.TryAddSingleton<DynamoDbDeliveryStateStore>();
         services.Replace(ServiceDescriptor.Singleton<IDeliveryStateStore>(sp => sp.GetRequiredService<DynamoDbDeliveryStateStore>()));
         services.Replace(ServiceDescriptor.Singleton<IDueDeliveryIndex>(sp => sp.GetRequiredService<DynamoDbDeliveryStateStore>()));
+        return services;
+    }
+
+    /// <summary>The DynamoDB rollup writer; used by every service that counts (Fan-out and Dispatcher).</summary>
+    public static IServiceCollection AddAwsRollups(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddAwsDynamoDb(configuration);
+        services.TryAddSingleton<DynamoDbRollupWriter>();
+        services.Replace(ServiceDescriptor.Singleton<IRollupWriter>(sp => sp.GetRequiredService<DynamoDbRollupWriter>()));
         return services;
     }
 
