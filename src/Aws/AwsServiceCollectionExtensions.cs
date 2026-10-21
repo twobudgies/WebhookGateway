@@ -1,16 +1,20 @@
 using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.KeyManagementService;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SQS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using WebhookGateway.Aws.DynamoDb;
+using WebhookGateway.Aws.Kms;
 using WebhookGateway.Aws.S3;
 using WebhookGateway.Aws.Sqs;
 using WebhookGateway.Core.Rollups;
 using WebhookGateway.Dispatcher.Delivery;
+using WebhookGateway.Dispatcher.Endpoints;
 using WebhookGateway.Dispatcher.Source;
 using WebhookGateway.FanOut.Archive;
 using WebhookGateway.FanOut.Delivery;
@@ -68,6 +72,35 @@ public static class AwsServiceCollectionExtensions
         services.AddAwsDynamoDb(configuration);
         services.TryAddSingleton<DynamoDbRollupWriter>();
         services.Replace(ServiceDescriptor.Singleton<IRollupWriter>(sp => sp.GetRequiredService<DynamoDbRollupWriter>()));
+        return services;
+    }
+
+    /// <summary>
+    /// Endpoint-secret encryption (D26): the KMS protector in production (<c>Secrets:KmsKeyId</c>), or the local AES key
+    /// (<c>Secrets:LocalKey</c>, base64 32 bytes) for development. Neither configured is a startup error.
+    /// </summary>
+    public static IServiceCollection AddSecretProtection(this IServiceCollection services, IConfiguration configuration)
+    {
+        var localKey = configuration["Secrets:LocalKey"];
+        if (!string.IsNullOrEmpty(localKey))
+        {
+            services.AddSingleton<ISecretProtector>(LocalSecretProtector.FromBase64(localKey));
+            return services;
+        }
+
+        var kmsKeyId = configuration["Secrets:KmsKeyId"];
+        if (string.IsNullOrEmpty(kmsKeyId))
+        {
+            throw new InvalidOperationException("Configure Secrets:KmsKeyId (production) or Secrets:LocalKey (development) to protect endpoint secrets.");
+        }
+
+        services.TryAddSingleton<IAmazonKeyManagementService>(_ => Configure<AmazonKeyManagementServiceConfig, IAmazonKeyManagementService>(
+            configuration,
+            (creds, c) => creds is null ? new AmazonKeyManagementServiceClient(c) : new AmazonKeyManagementServiceClient(creds, c)));
+        services.AddSingleton<ISecretProtector>(sp => new KmsSecretProtector(
+            sp.GetRequiredService<IAmazonKeyManagementService>(),
+            kmsKeyId,
+            sp.GetRequiredService<ILogger<KmsSecretProtector>>()));
         return services;
     }
 

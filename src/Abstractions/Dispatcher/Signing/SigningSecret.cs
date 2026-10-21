@@ -38,5 +38,5 @@ public sealed class SigningSecret
 
     public string ToText() => Prefix + Convert.ToBase64String(_key);
 
-    internal byte[] Sign(ReadOnlySpan<byte> data) => HMACSHA256.HashData(_key, data);
+    public byte[] Sign(ReadOnlySpan<byte> data) => HMACSHA256.HashData(_key, data);
 }

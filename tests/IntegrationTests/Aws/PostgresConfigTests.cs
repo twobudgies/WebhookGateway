@@ -164,4 +164,50 @@ public sealed class PostgresConfigTests
             await Exec(db, "DELETE FROM webhook.tenants WHERE id = @id", ("id", tenant));
         }
     }
+
+    [Fact]
+    public async Task An_active_endpoint_resolves_with_its_decrypted_signing_secret_and_a_disabled_one_does_not()
+    {
+        await using var db = await ConnectAsync();
+        if (db is null)
+        {
+            return;
+        }
+
+        var protector = new Dispatcher.Endpoints.LocalSecretProtector(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var signing = Dispatcher.Signing.SigningSecret.Generate();
+        var protectedSecret = await protector.ProtectAsync(signing.ToText(), CancellationToken.None);
+        var tenant = Guid.CreateVersion7();
+        var active = Guid.CreateVersion7();
+        var disabled = Guid.CreateVersion7();
+        await Exec(db, "INSERT INTO webhook.tenants (id, name, plan_code) VALUES (@id, 'T', 'basic')", ("id", tenant));
+        foreach (var (id, status) in new[] { (active, "active"), (disabled, "disabled") })
+        {
+            await using var insert = db.CreateCommand("INSERT INTO webhook.endpoints (id, tenant_id, url, status, secret_ciphertext, secret_kms_key_id) VALUES (@id, @t, 'https://example.com/hook', @s, @c, @k)");
+            insert.Parameters.AddWithValue("id", id);
+            insert.Parameters.AddWithValue("t", tenant);
+            insert.Parameters.AddWithValue("s", status);
+            insert.Parameters.AddWithValue("c", protectedSecret.Ciphertext);
+            insert.Parameters.AddWithValue("k", protectedSecret.KeyId);
+            await insert.ExecuteNonQueryAsync();
+        }
+
+        try
+        {
+            var store = new PostgresEndpointStore(db, protector, new FakeTimeProvider(), Options(), NullLogger<PostgresEndpointStore>.Instance);
+            var tenantId = Contracts.Ids.TenantId.Parse($"ten_{tenant}");
+
+            var target = await store.GetAsync(tenantId, Contracts.Ids.EndpointId.Parse($"ep_{active}"), CancellationToken.None);
+            var missing = await store.GetAsync(tenantId, Contracts.Ids.EndpointId.Parse($"ep_{disabled}"), CancellationToken.None);
+
+            Assert.NotNull(target);
+            Assert.Equal(new Uri("https://example.com/hook"), target.Url);
+            Assert.Equal(signing.ToText(), Assert.Single(target.Secrets).ToText());
+            Assert.Null(missing);
+        }
+        finally
+        {
+            await Exec(db, "DELETE FROM webhook.tenants WHERE id = @id", ("id", tenant));
+        }
+    }
 }

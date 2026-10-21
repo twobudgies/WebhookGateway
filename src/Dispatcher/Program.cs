@@ -7,6 +7,7 @@ using WebhookGateway.Dispatcher.Outbound;
 using WebhookGateway.Dispatcher.Retry;
 using WebhookGateway.Dispatcher.Source;
 using WebhookGateway.Hosting;
+using WebhookGateway.Postgres;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddStructuredJsonConsole("Dispatcher");
@@ -26,6 +27,12 @@ builder.Services.AddSingleton<IWebhookSender>(sp => sp.GetRequiredService<Webhoo
 
 // Endpoint configuration comes from the config database once the ControlPlane exists (P2-1); until then the store is empty.
 builder.Services.AddSingleton<IEndpointStore, InMemoryEndpointStore>();
+if (builder.Configuration.UsePostgres())
+{
+    builder.Services.AddPostgresDataSource(builder.Configuration);
+    builder.Services.AddSecretProtection(builder.Configuration);
+    builder.Services.AddSingleton<IEndpointStore, PostgresEndpointStore>();
+}
 
 // The consumer needs the queues, the archive and delivery_state, so it only runs with Backend:Mode=Aws
 // (Moto locally, see dev/README.md). The retry scheduler and the rollup flusher run next to it.
