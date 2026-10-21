@@ -10,6 +10,7 @@ using WebhookGateway.IntegrationTests.Ingest;
 namespace WebhookGateway.IntegrationTests.Aws;
 
 /// <summary>Ingest started with <c>Backend:Mode=Aws</c> puts accepted events on the real SQS queue. Needs <c>./scripts/dev-up.sh</c>.</summary>
+[Collection("moto-queues")]
 public sealed class IngestAwsWiringTests : IClassFixture<IngestFactory>
 {
     private static readonly Uri Moto = new("http://localhost:5050");
