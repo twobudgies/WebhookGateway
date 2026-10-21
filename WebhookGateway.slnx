@@ -24,6 +24,12 @@
   <Folder Name="/src/Hosting/">
     <Project Path="src/Hosting/WebhookGateway.Hosting.csproj" />
   </Folder>
+  <Folder Name="/src/Migrator/">
+    <Project Path="src/Migrator/WebhookGateway.Migrator.csproj" />
+  </Folder>
+  <Folder Name="/src/Postgres/">
+    <Project Path="src/Postgres/WebhookGateway.Postgres.csproj" />
+  </Folder>
   <Folder Name="/src/Valkey/">
     <Project Path="src/Valkey/WebhookGateway.Valkey.csproj" />
   </Folder>

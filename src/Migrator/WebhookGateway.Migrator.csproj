@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>WebhookGateway.Migrator</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Postgres\WebhookGateway.Postgres.csproj" />
+    <ProjectReference Include="..\Hosting\WebhookGateway.Hosting.csproj" />
+  </ItemGroup>
+</Project>
