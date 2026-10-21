@@ -4,7 +4,7 @@ using WebhookGateway.Dispatcher.Retry;
 using WebhookGateway.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
-builder.Logging.AddStructuredJsonConsole();
+builder.Logging.AddStructuredJsonConsole("Dispatcher");
 
 builder.Services.Configure<SenderOptions>(builder.Configuration.GetSection(SenderOptions.SectionName));
 builder.Services.AddSingleton(TimeProvider.System);

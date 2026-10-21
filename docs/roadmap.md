@@ -69,6 +69,7 @@ No component logs yet. Sink decided: CloudWatch Logs, 14 days (D32, `logging.md`
 | L-6 | Backfill Core rollups (P1-10): flush failures, dropped counters | S | **partly done:** the DynamoDB writer logs flush failures with row counts; the flush loop (not built yet) must log dropped counters | | L-2 |
 | L-7 | **done** Backfill SQS adapters (`src/Aws`): batch partial failure, receive/delete errors, queue URL resolution failure | S | | L-2 |
 | L-8 | Log hygiene tests: no secrets/payloads in log output | S | **partly done:** Dispatcher failure line test (ids yes, payload no); still to add for Ingest and Fan-out | L-3..L-5 |
+| L-11 | `component` field on every log line (Ingest, FanOut, Dispatcher, ControlPlane), existing services updated; flat JSON formatter | S | **done 2026-10-21** (D38) | L-2 |
 | L-9 | Sink: ship logs to the chosen store, retention, a saved query set for debugging by eventId/deliveryId (cloud, needs owner go-ahead) | M | aws | P3-2, sink decision |
 | L-10 | Local dev: logs readable in the console with the same fields | S | | L-2 |
 

@@ -6,10 +6,9 @@
     <PackageReference Include="AWSSDK.DynamoDBv2" />
     <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="AWSSDK.SQS" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <ProjectReference Include="..\Abstractions\WebhookGateway.Abstractions.csproj" />
     <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
     <ProjectReference Include="..\Core\WebhookGateway.Core.csproj" />
-    <ProjectReference Include="..\Ingest\WebhookGateway.Ingest.csproj" />
-    <ProjectReference Include="..\FanOut\WebhookGateway.FanOut.csproj" />
-    <ProjectReference Include="..\Dispatcher\WebhookGateway.Dispatcher.csproj" />
   </ItemGroup>
 </Project>
