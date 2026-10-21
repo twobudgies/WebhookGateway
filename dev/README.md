@@ -18,3 +18,14 @@ Resources created by `dev-up.sh` (names from `docs/data-plane.md`): SQS `events`
 Port 5000 is not used because macOS AirPlay Receiver occupies it.
 
 Status: written and reviewed but **not yet verified end to end** (Docker Desktop was blocked by a licence dialog on the dev machine; see `docs/worklog.md`).
+
+## Running a service against the local stack
+
+Services default to in-memory ports. To use Moto instead:
+
+```
+./scripts/dev-up.sh
+Backend__Mode=Aws Aws__ServiceUrl=http://localhost:5050 dotnet run --project src/Ingest -c Release
+```
+
+The same two variables work for `src/FanOut` and `src/Dispatcher` (the Dispatcher queue consumer starts only in `Aws` mode). Bucket, table and queue names default to the ones `dev-up.sh` creates. Subscriptions and endpoints are still in-memory, so Fan-out and Dispatcher have nothing to route until the config database stores exist. Decision D39.

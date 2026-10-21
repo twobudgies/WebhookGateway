@@ -1,3 +1,4 @@
+using WebhookGateway.Aws;
 using WebhookGateway.FanOut;
 using WebhookGateway.FanOut.Archive;
 using WebhookGateway.FanOut.Delivery;
@@ -19,5 +20,12 @@ builder.Services.AddSingleton<FanOutProcessor>();
 builder.Services.AddSingleton<EventConsumer>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<EventConsumer>());
 
+if (builder.Configuration.UseAws())
+{
+    builder.Services.AddAwsFanOut(builder.Configuration);
+}
+
 var host = builder.Build();
+host.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup")
+    .LogServiceStarted(builder.Configuration.UseAws() ? "Aws" : "InMemory");
 host.Run();
