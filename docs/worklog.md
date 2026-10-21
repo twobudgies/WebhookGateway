@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Container images and configuration reference
+- **Status:** PR open
+- **Outcome:** one parameterised `Dockerfile` (non-root, port 8080), `make images`, `docs/configuration.md` (all keys, IAM needs). Ingest image verified (`/healthz` 200) and Dispatcher image starts with structured logs.
+- **Needs the owner before any further deployment work:** AWS account/profile and go-ahead for P3 (nothing in AWS has been touched), a domain name for the API, the plan quota numbers, who holds the operator admin key, first customer / launch date.
+- **Resume from:** CDK stacks in an infra project (written but not deployed until the go-ahead), staging load test, `usage_monthly` flusher, endpoint secret rotation.
+
 ### 2026-10-21 End-to-end pipeline test
 - **Status:** PR open
 - **Outcome:** `PipelineEndToEndTests` proves Ingest -> SQS -> Fan-out (S3, Postgres routing) -> SQS -> Dispatcher (endpoint + decrypted secret) with real adapters on the local stack. The Moto-queue tests share one xunit collection so they do not race on queue names.
