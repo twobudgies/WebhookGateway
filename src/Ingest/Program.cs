@@ -4,6 +4,7 @@ using WebhookGateway.Ingest.Api;
 using WebhookGateway.Ingest.Limits;
 using WebhookGateway.Ingest.Publishing;
 using WebhookGateway.Ingest.Tenancy;
+using WebhookGateway.Postgres;
 using WebhookGateway.Valkey;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,13 @@ builder.Services.AddSingleton<IEventPublisher>(sp => sp.GetRequiredService<InMem
 if (builder.Configuration.UseAws())
 {
     builder.Services.AddAwsIngest(builder.Configuration);
+}
+
+// With Postgres:ConnectionString set, API keys and plan limits come from the config database (cached 30 s).
+if (builder.Configuration.UsePostgres())
+{
+    builder.Services.AddPostgresDataSource(builder.Configuration);
+    builder.Services.AddSingleton<IApiKeyStore, PostgresApiKeyStore>();
 }
 
 // With Valkey:ConnectionString set, limits are shared across Ingest tasks; each falls back to local behavior if Valkey is down.

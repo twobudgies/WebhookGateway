@@ -7,6 +7,7 @@ using WebhookGateway.FanOut.Processing;
 using WebhookGateway.FanOut.Routing;
 using WebhookGateway.FanOut.Source;
 using WebhookGateway.Hosting;
+using WebhookGateway.Postgres;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddStructuredJsonConsole("FanOut");
@@ -21,6 +22,12 @@ builder.Services.AddSingleton<IEventSource, InMemoryEventSource>();
 builder.Services.AddSingleton<FanOutProcessor>();
 builder.Services.AddSingleton<EventConsumer>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<EventConsumer>());
+
+if (builder.Configuration.UsePostgres())
+{
+    builder.Services.AddPostgresDataSource(builder.Configuration);
+    builder.Services.AddSingleton<ISubscriptionStore, PostgresSubscriptionStore>();
+}
 
 if (builder.Configuration.UseAws())
 {

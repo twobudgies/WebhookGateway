@@ -10,6 +10,9 @@ awsl() { aws --endpoint-url "$aws_url" "$@"; }
 
 docker compose -f dev/docker-compose.yml up -d --wait
 
+# Config database schema and seed plans (db/migrations); safe to rerun.
+dotnet run --project src/Migrator -c Release -- "Host=localhost;Port=5432;Database=webhook;Username=webhook;Password=webhook" db/migrations
+
 # Queues follow docs/data-plane.md; each has a DLQ (maxReceiveCount 5).
 create_queue() {
   local name="$1" visibility="$2"

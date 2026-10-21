@@ -1,6 +1,6 @@
 # Database (PostgreSQL)
 
-Status: **IN REVIEW. Updated for architecture v4 (2026-10-20); awaiting the owner's final review before anything is built.** Once approved, change this line to `Final v1` and log it in `decisions.md`.
+Status: **Final v1 (approved by the owner 2026-10-21 on PR #34).** Earlier note: IN REVIEW. Updated for architecture v4 (2026-10-20). Draft implementation 2026-10-21 in `db/migrations/0001_initial_schema.sql` and `0002_seed_plans.sql` (PR open, NOT merged): the owner's review of that PR is the final review.** The open `(review)` choices were decided in D43. Once approved, change this line to `Final v1` and log it in `decisions.md`.
 
 ## Scope (changed by D21)
 

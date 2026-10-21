@@ -36,6 +36,12 @@ Resume point for agents after a sudden stop, crash, or new session. **Read this 
 - **Outcome:** `architecture.md` v4 approved; decisions D20-D28 logged; `contracts.md` v2; `database.md` rewritten config-only (still **in review**); `docs/roadmap.md` lists the work items; plan numbers still provisional.
 - **Resume from:** see the next entry (roadmap execution).
 
+### 2026-10-21 Config database (P1-2) - PR open, waiting for the owner's review
+- **Status:** done: approved by the owner and merged (D44)
+- **Outcome:** `db/migrations/0001..0002`, `src/Postgres` (MigrationRunner, PostgresApiKeyStore, PostgresSubscriptionStore), `src/Migrator`, wiring when `Postgres:ConnectionString` is set, `dev-up.sh` runs migrations, tests against local Postgres. D43 resolves the open review items.
+- **Do not merge until the owner approves.** After approval set `database.md` to `Final v1` and log it.
+- **Resume from:** ControlPlane API (P2-1) with KMS envelope encryption for endpoint secrets, `PostgresEndpointStore`, then the portal read API; meanwhile P1-8/P1-9 pacing and connection permits.
+
 ### 2026-10-21 Valkey accept limits (P1-4)
 - **Status:** PR open
 - **Outcome:** `src/Valkey` (token bucket Lua, idempotency, monthly counter), decorators with fallback in Ingest, endpoint order count -> claim -> publish with rollback on failure, tests (Valkey integration, degraded mode, endpoint). D42 holds the reasons and what is deliberately not done.

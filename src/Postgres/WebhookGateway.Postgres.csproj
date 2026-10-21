@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>WebhookGateway.Postgres</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <ProjectReference Include="..\Abstractions\WebhookGateway.Abstractions.csproj" />
+    <ProjectReference Include="..\Contracts\WebhookGateway.Contracts.csproj" />
+  </ItemGroup>
+</Project>
